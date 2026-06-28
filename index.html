@@ -581,7 +581,7 @@ function nodeRoot(gs) {
   if (!gs.quitJob) choices.push({ label: "💼 Quit the job", next: "quit_job" });
   choices.push({ label: gs.car ? "🚗 Buy another car" : "🚗 Buy a car", next: "buy_car" });
   if (!gs.house) choices.push({ label: "🏠 Buy a house", next: "buy_house" });
-  choices.push({ label: "✈️ Take a holiday", next: "take_holiday" });
+  choices.push({ label: "🎉 Fun Stuff", next: "fun_stuff" });
   choices.push({ label: "📈 Invest", next: "invest" });
   choices.push({ label: "🎁 Be generous", next: "generosity" });
   const hasActed = gs.car || gs.house || gs.quitJob || gs.investments.length > 0 || gs.holidays.length > 0 || gs.givens.length > 0;
@@ -624,6 +624,93 @@ function nodeQuitManure(gs) {
 }
 function nodeQuitBand(gs) {
   return { text: "The brass band plays your chosen walk-out anthem." + (gs.house ? " You invite the whole office back to the " + gs.houseName + " for drinks afterward." : "") + " Colleagues cry, clap, and film it. A good human being.", outcome: true, cost: 8000, choices: [{ label: "→ What's next?", next: "root" }], action: function(g) { return Object.assign({}, g, { quitJob: true, quitStyle: "band" }); } };
+}
+
+// ── FUN STUFF ─────────────────────────────────────────────
+function nodeFunStuff(gs) {
+  return {
+    text: gs.holidays && gs.holidays.length > 0
+      ? "You've seen " + gs.holidays.join(", ") + ". The world's still full of possibilities."
+      : "The money's there. The time's yours. What's calling?",
+    choices: [
+      { label: "✈️ Holidays — first class, obviously", next: "take_holiday" },
+      { label: "🏎️ Big Boys Toys — sparkly depreciation", next: "big_boys_toys" },
+      { label: "💍 For the Ladies — the finer things", next: "for_the_ladies" },
+    ]
+  };
+}
+
+function nodeBigBoysToys(gs) {
+  var owned = gs.bigToys || [];
+  return {
+    text: owned.length > 0
+      ? "The garage is getting interesting. What's next?"
+      : "Sparkly depreciation. Every man's birthright. Choose wisely — or don't.",
+    choices: [
+      { label: "🚤 Prestige powerboat — wake, speed, regret — $320,000", next: "toy_boat", cost: 320000 },
+      { label: "🚁 Helicopter lessons + R44 — $280,000", next: "toy_heli", cost: 280000 },
+      { label: "🏍️ Ducati Panigale V4 + leathers — $48,000", next: "toy_moto", cost: 48000 },
+      { label: "🎸 Custom guitar collection — 12 instruments — $95,000", next: "toy_guitars", cost: 95000 },
+      { label: "⛳ TopDrive Golf Simulator Suite — $65,000", next: "toy_golf", cost: 65000 },
+      { label: "🏎️ Track day package — Queenslandia Raceway, 12 sessions — $28,000", next: "toy_track", cost: 28000 },
+    ]
+  };
+}
+
+function nodeToyBoat(gs) {
+  return { text: "Forty-two feet of fibreglass ego. It sits in the marina at Coastside looking incredible. You take it out on weekends. The fuel bill is extraordinary. The sunsets are better than anything you ever saw from a desk." + (gs.house === "canal" ? " The jetty at " + gs.houseName + " fits it perfectly." : ""), outcome: true, cost: 320000, annualAdd: 28000, choices: [{ label: "→ Worth it", next: "root" }], action: function(g) { return Object.assign({}, g, { bigToys: (g.bigToys||[]).concat(["Powerboat"]) }); } };
+}
+function nodeToyHeli(gs) {
+  return { text: "Sixty hours of lessons. The R44 is yours. The first solo flight over the Coastal region at sunrise — there are no words for it. Your instructor says you have natural spatial awareness. You choose to believe him completely.", outcome: true, cost: 280000, annualAdd: 22000, choices: [{ label: "→ Worth every cent", next: "root" }], action: function(g) { return Object.assign({}, g, { bigToys: (g.bigToys||[]).concat(["Helicopter"]) }); } };
+}
+function nodeToyMoto(gs) {
+  return { text: "The Ducati arrives in a crate from Italy. Red. Obviously red. The leathers are custom — your initials stitched inside the collar. You take it down the coastal road at 5am on a Sunday." + (gs.house === "rural" ? " The dirt roads near " + gs.houseName + " are not suitable. You ride the highway instead." : "") + " It is the most alive you have felt since the cheque cleared.", outcome: true, cost: 48000, annualAdd: 4500, choices: [{ label: "→ The road was made for this", next: "root" }], action: function(g) { return Object.assign({}, g, { bigToys: (g.bigToys||[]).concat(["Ducati"]) }); } };
+}
+function nodeToyGuitars(gs) {
+  return { text: "Twelve instruments. A '59 Les Paul reissue. A Collings OM2H. A Gretsch White Falcon. A Brazilian rosewood Martin. You play three of them well. The others you play badly but enthusiastically. The room they're in smells like nitrocellulose and ambition.", outcome: true, cost: 95000, annualAdd: 0, choices: [{ label: "→ Every one of them was necessary", next: "root" }], action: function(g) { return Object.assign({}, g, { bigToys: (g.bigToys||[]).concat(["Guitar Collection"]) }); } };
+}
+function nodeToyGolf(gs) {
+  return { text: "A TopDrive simulator suite installed in the garage — or the spare room, or wherever it fits. Full swing analysis, 30 courses, a putting green mat that cost more than most people's cars. Your handicap improves three shots. Your stories about your handicap improve considerably more.", outcome: true, cost: 65000, annualAdd: 0, choices: [{ label: "→ Eighteen holes before breakfast", next: "root" }], action: function(g) { return Object.assign({}, g, { bigToys: (g.bigToys||[]).concat(["Golf Simulator"]) }); } };
+}
+function nodeToyTrack(gs) {
+  return { text: "Queenslandia Raceway. Twelve track days. A professional instructor who says 'trust the car' a lot. By session four you actually trust the car." + (gs.car ? " You bring the " + gs.carName + " for two sessions. The rest you drive club cars, which is humbling and educational." : "") + " You understand now why people do this until they're seventy.", outcome: true, cost: 28000, annualAdd: 0, choices: [{ label: "→ Book next year's package already", next: "root" }], action: function(g) { return Object.assign({}, g, { bigToys: (g.bigToys||[]).concat(["Track Days"]) }); } };
+}
+
+function nodeForTheLadies(gs) {
+  var owned = gs.lady || [];
+  return {
+    text: owned.length > 0
+      ? "The finer things. You've developed a taste. What's next?"
+      : "The things worth having. The things worth giving. The things worth keeping.",
+    choices: [
+      { label: "💎 Private jeweller — bespoke fine jewellery — $95,000", next: "lady_jewels", cost: 95000 },
+      { label: "👗 Paris fashion week — front row, full wardrobe — $85,000", next: "lady_paris", cost: 85000 },
+      { label: "🛁 Spa and wellness retreat — 3 weeks, Southvale River — $38,000", next: "lady_spa", cost: 38000 },
+      { label: "🎨 Private art acquisition — emerging Ozmanian artists — $120,000", next: "lady_art", cost: 120000 },
+      { label: "🏰 Château wine tour — Southvale River, 10 days — $62,000", next: "lady_wine", cost: 62000 },
+      { label: "🏠 Home renovation — no budget conversation — $180,000", next: "lady_reno", cost: 180000 },
+    ]
+  };
+}
+
+function nodeLadyJewels(gs) {
+  return { text: "A private jeweller in the Meridian Quarter. By appointment only. The pieces are made over six weeks — you're consulted at each stage. The finished work is worn exactly once to a function and then kept in a velvet box that costs more than most wedding rings.", outcome: true, cost: 95000, choices: [{ label: "→ Worth every carat", next: "root" }], action: function(g) { return Object.assign({}, g, { lady: (g.lady||[]).concat(["Fine Jewellery"]) }); } };
+}
+function nodeLadyParis(gs) {
+  return { text: "Front row at three shows. A private styling consultation. A wardrobe packed in cases you need help lifting. You come home with an understanding of proportion and colour that you cannot fully explain but will never lose. Also sixteen kilograms of luggage over the limit.", outcome: true, cost: 85000, choices: [{ label: "→ Front row changes you", next: "root" }], action: function(g) { return Object.assign({}, g, { lady: (g.lady||[]).concat(["Paris Fashion Week"]) }); } };
+}
+function nodeLadySpa(gs) {
+  return { text: "Three weeks in the Southvale River Valley. Stone massage, organic everything, a naturopath who asks questions nobody has ever asked you before. You cry twice. Both times feel correct. You return looking, according to three separate people, 'different somehow'. You know exactly how.", outcome: true, cost: 38000, choices: [{ label: "→ The best money I've spent", next: "root" }], action: function(g) { return Object.assign({}, g, { lady: (g.lady||[]).concat(["Wellness Retreat"]) }); } };
+}
+function nodeLadyArt(gs) {
+  return { text: "Eight pieces from Ozmanian artists on the cusp. Your art advisor says two of them will be significant within five years. You don't buy them as investments — you buy them because they make you feel something standing in front of them." + (gs.house ? " They look extraordinary in " + gs.houseName + "." : "") + " One of the artists sends a handwritten thank-you note.", outcome: true, cost: 120000, choices: [{ label: "→ Art that means something", next: "root" }], action: function(g) { return Object.assign({}, g, { lady: (g.lady||[]).concat(["Art Collection"]) }); } };
+}
+function nodeLadyWine(gs) {
+  return { text: "Ten days in Southvale River. Small producers, private cellars, lunch that starts at noon and ends when someone checks their watch and it's four. You come home with a case of something exceptional and an embarrassing amount of knowledge about tannins.", outcome: true, cost: 62000, choices: [{ label: "→ The education was worth it", next: "root" }], action: function(g) { return Object.assign({}, g, { lady: (g.lady||[]).concat(["Château Wine Tour"]) }); } };
+}
+function nodeLadyReno(gs) {
+  var houseTxt = gs.house ? "The " + gs.houseName + " gets" : "The house gets";
+  return { text: houseTxt + " the renovation it deserved. No budget conversation — that was the brief. The architect heard you. The builder heard the architect. Six months later you walk through it and feel the specific satisfaction of a thing done properly, without compromise, exactly once.", outcome: true, cost: 180000, choices: [{ label: "→ Done properly or not at all", next: "root" }], action: function(g) { return Object.assign({}, g, { lady: (g.lady||[]).concat(["Home Renovation"]) }); } };
 }
 
 function nodeBuyCar(gs) {
@@ -1286,6 +1373,16 @@ const NODES = {
   wife_portfolio: nodeWifePortfolio, wife_small: nodeWifeSmall, wife_mid: nodeWifeMid, wife_large: nodeWifeLarge,
   give_family: nodeGiveFamily, give_parents: nodeGiveParents, give_parents_done: nodeGiveParentsDone,
   give_charity: nodeGiveCharity, give_mate: nodeGiveMate, give_mate_done: nodeGiveMateDone,
+  fun_stuff: nodeFunStuff,
+  big_boys_toys: nodeBigBoysToys,
+  toy_boat: nodeToyBoat, toy_heli: nodeToyHeli, toy_moto: nodeToyMoto,
+  toy_guitars: nodeToyGuitars, toy_golf: nodeToyGolf, toy_track: nodeToyTrack,
+  for_the_ladies: nodeForTheLadies,
+  lady_jewels: nodeLadyJewels, lady_paris: nodeLadyParis, lady_spa: nodeLadySpa,
+  lady_art: nodeLadyArt, lady_wine: nodeLadyWine, lady_reno: nodeLadyReno,
+  take_holiday: nodeTakeHoliday,
+  hol_europe: nodeHolEurope, hol_maldives: nodeHolMaldives, hol_cruise: nodeHolCruise,
+  hol_japan: nodeHolJapan, hol_vegas: nodeHolVegas,
 };
 
 // ── RANDOM EVENTS ─────────────────────────────────────────
@@ -1472,7 +1569,13 @@ var NOTIFICATIONS = [
 function getNotification(gs, shownIds) {
   var available = [];
   for (var i = 0; i < NOTIFICATIONS.length; i++) {
-    if (shownIds.indexOf(i) < 0) available.push({ notif: NOTIFICATIONS[i], id: i });
+    var n = NOTIFICATIONS[i];
+    // Skip special-purpose notifications handled by dedicated triggers
+    if (n.gatesPath || n.paulsonStructureTrigger || n.paulsonContact || n.politicoTrigger) continue;
+    if (n.id === "paulson_2" || n.id === "paulson_3" || n.id === "paulson_4") continue;
+    // Use string ID if available, else index string
+    var nid = n.id !== undefined ? String(n.id) : String(i);
+    if (shownIds.indexOf(nid) < 0) available.push({ notif: n, id: nid });
   }
   if (available.length === 0) return null;
   return available[Math.floor(Math.random() * available.length)];
@@ -2354,6 +2457,8 @@ function StatusBar(props) {
   if (gs.givens.length > 0) items.push(React.createElement("span", { key:"give" }, "❤️ ", React.createElement("span", { style:{color:"#e88"} }, "Gave: " + gs.givens.join(", "))));
   if (annualCosts > 0) items.push(React.createElement("span", { key:"costs" }, "🔥 ", React.createElement("span", { style:{color:C.red} }, "Running costs: $" + annualCosts.toLocaleString() + "/yr")));
   if (gs.holidays.length > 0) items.push(React.createElement("span", { key:"hols" }, "✈️ ", React.createElement("span", { style:{color:C.dim} }, gs.holidays.join(", "))));
+  if (gs.bigToys && gs.bigToys.length > 0) items.push(React.createElement("span", { key:"toys" }, "🏎️ ", React.createElement("span", { style:{color:C.dim} }, gs.bigToys.join(", "))));
+  if (gs.lady && gs.lady.length > 0) items.push(React.createElement("span", { key:"lady" }, "💎 ", React.createElement("span", { style:{color:C.dim} }, gs.lady.join(", "))));
   return React.createElement("div", { style: { maxWidth:"700px", margin:"0 auto 2rem", padding:"0 1rem" } },
     React.createElement("div", { style: { background:C.dark, border:"1px solid #252525", borderRadius:"6px", padding:"0.9rem 1.3rem", fontSize:"0.78rem", color:C.dim } },
       React.createElement("div", { style: { letterSpacing:"0.15em", textTransform:"uppercase", marginBottom:"0.5rem", fontSize:"0.6rem" } }, "Your World"),
@@ -2958,52 +3063,75 @@ function GameCore(props) {
         setPendingEvent(pool[Math.floor(Math.random() * pool.length)]);
         return;
       }
-      if (nw >= 3 && nw - lastNotifWeek.current >= 6 && Math.random() < 0.45) {
+      // ── FORCED TRIGGERS — bypass weekly gate, fire as soon as threshold met ──
+      var _gs = gsRef.current;
+      var _pi = passRef.current;
+      var _pc = (_gs.paulsonContact||0);
+
+      // Paulson initial contact — fires when passive >= $8k, no prior contact
+      if (_pi >= 8000 && _pc === 0 && !_gs.billionaireMode && shownNotifsRef.current.indexOf("paulson_initial") < 0) {
+        shownNotifsRef.current = shownNotifsRef.current.concat(["paulson_initial"]);
+        setPendingNotif({
+          id: "paulson_initial", type:"call", tier:"legit",
+          from:"Richard Paulson", preview:"Southrock Capital — your portfolio caught our attention...",
+          body:"G'day, Richard Paulson from Southrock Capital. We monitor high-net-worth windfall events — most people are broke inside two years. You're not. You've built $" + Math.round(_pi).toLocaleString() + " a month in passive income. That's rare. I'd like to have a coffee. No pitch. Just a conversation.",
+          acceptLabel:"Sure — coffee works", rejectLabel:"Not interested",
+          paulsonContact: 1,
+          onAccept: { cost:0, passiveAdd:0, msg:"Richard is punctual, direct, and doesn't waste words. He orders a long black and talks for twenty minutes about the difference between earning money and deploying capital. By the time you leave you understand something important. He says he'll be in touch." }
+        });
+        return;
+      }
+
+      // Paulson structure call — fires when passive >= $8k AND paulsonContact >= 1
+      if (_pc >= 1 && _pi >= 8000 && shownNotifsRef.current.indexOf("paulson_2") < 0) {
+        shownNotifsRef.current = shownNotifsRef.current.concat(["paulson_2"]);
+        var _p2n = NOTIFICATIONS.filter(function(n){ return n.id === "paulson_2"; })[0];
+        if (_p2n) { setPendingNotif(_p2n); return; }
+      }
+      // Paulson co-investment — fires when passive >= $20k AND paulsonContact >= 2
+      if (_pc >= 2 && _pi >= 20000 && shownNotifsRef.current.indexOf("paulson_3") < 0) {
+        shownNotifsRef.current = shownNotifsRef.current.concat(["paulson_3"]);
+        var _p3n = NOTIFICATIONS.filter(function(n){ return n.id === "paulson_3"; })[0];
+        if (_p3n) { setPendingNotif(_p3n); return; }
+      }
+      // Paulson Dr Chen — fires when passive >= $50k AND paulsonContact >= 3
+      if (_pc >= 3 && _pi >= 50000 && shownNotifsRef.current.indexOf("paulson_4") < 0) {
+        shownNotifsRef.current = shownNotifsRef.current.concat(["paulson_4"]);
+        var _p4n = NOTIFICATIONS.filter(function(n){ return n.id === "paulson_4"; })[0];
+        if (_p4n) { setPendingNotif(_p4n); return; }
+      }
+      // Gates path — fires when restrainedChoices >= 2
+      if ((_gs.restrainedChoices||0) >= 2 && !_gs.billionaireMode && shownNotifsRef.current.indexOf("gates_trigger") < 0) {
+        shownNotifsRef.current = shownNotifsRef.current.concat(["gates_trigger"]);
+        var _gatesNotif = NOTIFICATIONS.filter(function(n){ return n.gatesPath; })[0];
+        if (_gatesNotif) { setPendingNotif(_gatesNotif); return; }
+      }
+
+      // ── WEEKLY NOTIFICATION WINDOW — reduced to 3-week gap, 65% probability ──
+      if (nw >= 2 && nw - lastNotifWeek.current >= 3 && Math.random() < 0.65) {
         lastNotifWeek.current = nw;
         var gs = gsRef.current;
         var streak = gs.gamblingStreak || 0;
+
+        // Gambling notifications
         var gamblingChance = streak > 0 ? 0.55 : 0.15;
         if (Math.random() < gamblingChance) {
           var gn = getGamblingNotif(gs);
           if (gn) { setPendingNotif(gn); return; }
         }
+        // Politico approach after donation
         if (gs.hasMadePoliticalDonation && (gs.politicoPath||0) === 0 && shownNotifsRef.current.indexOf("politico_approach") < 0) {
           shownNotifsRef.current = shownNotifsRef.current.concat(["politico_approach"]);
           var pNotif = NOTIFICATIONS.filter(function(n){ return n.id === "politico_approach"; })[0];
           if (pNotif) { setPendingNotif(pNotif); return; }
         }
-        if ((gs.politicoPath||0) >= 1 && (gs.politicoPath||0) < 99 && Math.random() < 0.12) {
+        // Politico random events
+        if ((gs.politicoPath||0) >= 1 && (gs.politicoPath||0) < 99 && Math.random() < 0.18) {
           var pevt = POLITICO_EVENTS[Math.floor(Math.random() * POLITICO_EVENTS.length)](gs);
           setPendingEvent(pevt);
           return;
         }
-        var pc2 = (gs.paulsonContact||0);
-        var pi2 = passRef.current;
-        if (pc2 >= 1 && pi2 >= 8000 && shownNotifsRef.current.indexOf("paulson_2") < 0) {
-          shownNotifsRef.current = shownNotifsRef.current.concat(["paulson_2"]);
-          var p2n = NOTIFICATIONS.filter(function(n){ return n.id === "paulson_2"; })[0];
-          if (p2n) { setPendingNotif(p2n); return; }
-        }
-        if (pc2 >= 2 && pi2 >= 20000 && shownNotifsRef.current.indexOf("paulson_3") < 0) {
-          shownNotifsRef.current = shownNotifsRef.current.concat(["paulson_3"]);
-          var p3n = NOTIFICATIONS.filter(function(n){ return n.id === "paulson_3"; })[0];
-          if (p3n) { setPendingNotif(p3n); return; }
-        }
-        if (pc2 >= 3 && pi2 >= 50000 && shownNotifsRef.current.indexOf("paulson_4") < 0) {
-          shownNotifsRef.current = shownNotifsRef.current.concat(["paulson_4"]);
-          var p4n = NOTIFICATIONS.filter(function(n){ return n.id === "paulson_4"; })[0];
-          if (p4n) { setPendingNotif(p4n); return; }
-        }
-        if (!gs.billionaireMode && (gs.passiveIncome||0) >= 15000 && (gs.paulsonContact||0) === 0 && shownNotifsRef.current.indexOf("paulson_2") < 0) {
-          shownNotifsRef.current = shownNotifsRef.current.concat(["paulson_2"]);
-          var p2g = NOTIFICATIONS.filter(function(n){ return n.id === "paulson_2"; })[0];
-          if (p2g) { setPendingNotif(p2g); return; }
-        }
-        if ((gs.restrainedChoices||0) >= 2 && !gs.billionaireMode && shownNotifsRef.current.indexOf("gates_trigger") < 0) {
-          shownNotifsRef.current = shownNotifsRef.current.concat(["gates_trigger"]);
-          var gatesNotif = NOTIFICATIONS.filter(function(n){ return n.gatesPath; })[0];
-          if (gatesNotif) { setPendingNotif(gatesNotif); return; }
-        }
+        // General notification pool
         var found = getNotification(gs, shownNotifsRef.current);
         if (found) {
           shownNotifsRef.current = shownNotifsRef.current.concat([found.id]);
@@ -3157,7 +3285,7 @@ function GameCore(props) {
       var pPassAdd = notif.onAccept.passiveAdd || 0;
       if (pCost > 0) setCash(function(c) { return Math.max(0, c - pCost); });
       if (pPassAdd > 0) setPassiveIncome(function(p) { return p + pPassAdd; });
-      setGameState(function(gs) { return Object.assign({}, gs, { paulsonContact: pc, billionaireMode: pc >= 4 ? true : gs.billionaireMode }); });
+      setGameState(function(gs) { return Object.assign({}, gs, { paulsonContact: Math.max(gs.paulsonContact||0, pc), billionaireMode: pc >= 4 ? true : gs.billionaireMode }); });
       if (pc >= 4) setNodeKey("paulson_opportunity");
       setNotifResult({ msg: notif.onAccept.msg, cost: pCost, passiveAdd: pPassAdd });
       return;
