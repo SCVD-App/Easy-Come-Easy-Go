@@ -3063,50 +3063,6 @@ function GameCore(props) {
         setPendingEvent(pool[Math.floor(Math.random() * pool.length)]);
         return;
       }
-      // ── FORCED TRIGGERS — bypass weekly gate, fire as soon as threshold met ──
-      var _gs = gsRef.current;
-      var _pi = passRef.current;
-      var _pc = (_gs.paulsonContact||0);
-
-      // Paulson initial contact — fires when passive >= $8k, no prior contact
-      if (_pi >= 8000 && _pc === 0 && !_gs.billionaireMode && shownNotifsRef.current.indexOf("paulson_initial") < 0) {
-        shownNotifsRef.current = shownNotifsRef.current.concat(["paulson_initial"]);
-        setPendingNotif({
-          id: "paulson_initial", type:"call", tier:"legit",
-          from:"Richard Paulson", preview:"Southrock Capital — your portfolio caught our attention...",
-          body:"G'day, Richard Paulson from Southrock Capital. We monitor high-net-worth windfall events — most people are broke inside two years. You're not. You've built $" + Math.round(_pi).toLocaleString() + " a month in passive income. That's rare. I'd like to have a coffee. No pitch. Just a conversation.",
-          acceptLabel:"Sure — coffee works", rejectLabel:"Not interested",
-          paulsonContact: 1,
-          onAccept: { cost:0, passiveAdd:0, msg:"Richard is punctual, direct, and doesn't waste words. He orders a long black and talks for twenty minutes about the difference between earning money and deploying capital. By the time you leave you understand something important. He says he'll be in touch." }
-        });
-        return;
-      }
-
-      // Paulson structure call — fires when passive >= $8k AND paulsonContact >= 1
-      if (_pc >= 1 && _pi >= 8000 && shownNotifsRef.current.indexOf("paulson_2") < 0) {
-        shownNotifsRef.current = shownNotifsRef.current.concat(["paulson_2"]);
-        var _p2n = NOTIFICATIONS.filter(function(n){ return n.id === "paulson_2"; })[0];
-        if (_p2n) { setPendingNotif(_p2n); return; }
-      }
-      // Paulson co-investment — fires when passive >= $20k AND paulsonContact >= 2
-      if (_pc >= 2 && _pi >= 20000 && shownNotifsRef.current.indexOf("paulson_3") < 0) {
-        shownNotifsRef.current = shownNotifsRef.current.concat(["paulson_3"]);
-        var _p3n = NOTIFICATIONS.filter(function(n){ return n.id === "paulson_3"; })[0];
-        if (_p3n) { setPendingNotif(_p3n); return; }
-      }
-      // Paulson Dr Chen — fires when passive >= $50k AND paulsonContact >= 3
-      if (_pc >= 3 && _pi >= 50000 && shownNotifsRef.current.indexOf("paulson_4") < 0) {
-        shownNotifsRef.current = shownNotifsRef.current.concat(["paulson_4"]);
-        var _p4n = NOTIFICATIONS.filter(function(n){ return n.id === "paulson_4"; })[0];
-        if (_p4n) { setPendingNotif(_p4n); return; }
-      }
-      // Gates path — fires when restrainedChoices >= 2
-      if ((_gs.restrainedChoices||0) >= 2 && !_gs.billionaireMode && shownNotifsRef.current.indexOf("gates_trigger") < 0) {
-        shownNotifsRef.current = shownNotifsRef.current.concat(["gates_trigger"]);
-        var _gatesNotif = NOTIFICATIONS.filter(function(n){ return n.gatesPath; })[0];
-        if (_gatesNotif) { setPendingNotif(_gatesNotif); return; }
-      }
-
       // ── WEEKLY NOTIFICATION WINDOW — reduced to 3-week gap, 65% probability ──
       if (nw >= 2 && nw - lastNotifWeek.current >= 3 && Math.random() < 0.65) {
         lastNotifWeek.current = nw;
@@ -3142,17 +3098,82 @@ function GameCore(props) {
     return function() { clearInterval(id); };
   }, []);
 
+
+  // ── PASSIVE INCOME TRIGGERED NOTIFICATIONS ──
+  // Fires on state change — no stale ref lag
+  useEffect(function() {
+    if (passiveIncome < 100) return;
+
+    // Paulson initial contact
+    if (passiveIncome >= 8000 && (gameState.paulsonContact||0) === 0 && !gameState.billionaireMode
+        && shownNotifsRef.current.indexOf("paulson_initial") < 0) {
+      shownNotifsRef.current = shownNotifsRef.current.concat(["paulson_initial"]);
+      setTimeout(function() {
+        setPendingNotif({
+          id: "paulson_initial", type:"call", tier:"legit",
+          from:"Richard Paulson", preview:"Southrock Capital — your portfolio caught our attention...",
+          body:"G'day, Richard Paulson from Southrock Capital. We monitor high-net-worth windfall events — most people are broke inside two years. You're not. You've built $" + Math.round(passiveIncome).toLocaleString() + " a month in passive income. That's unusual. I'd like to have a coffee. No pitch. Just a conversation.",
+          acceptLabel:"Sure — coffee works", rejectLabel:"Not interested",
+          paulsonContact: 1,
+          onAccept: { cost:0, passiveAdd:0, msg:"Richard is punctual, direct, and doesn't waste words. He orders a long black and talks for twenty minutes about the difference between earning money and deploying capital. By the time you leave you understand something important. He says he'll be in touch." }
+        });
+      }, 2000);
+      return;
+    }
+
+    // Paulson structure call
+    var pc = gameState.paulsonContact || 0;
+    if (pc >= 1 && passiveIncome >= 8000 && shownNotifsRef.current.indexOf("paulson_2") < 0) {
+      shownNotifsRef.current = shownNotifsRef.current.concat(["paulson_2"]);
+      var p2 = NOTIFICATIONS.filter(function(n){ return n.id === "paulson_2"; })[0];
+      if (p2) setTimeout(function(){ setPendingNotif(p2); }, 3000);
+      return;
+    }
+    if (pc >= 2 && passiveIncome >= 20000 && shownNotifsRef.current.indexOf("paulson_3") < 0) {
+      shownNotifsRef.current = shownNotifsRef.current.concat(["paulson_3"]);
+      var p3 = NOTIFICATIONS.filter(function(n){ return n.id === "paulson_3"; })[0];
+      if (p3) setTimeout(function(){ setPendingNotif(p3); }, 3000);
+      return;
+    }
+    if (pc >= 3 && passiveIncome >= 50000 && shownNotifsRef.current.indexOf("paulson_4") < 0) {
+      shownNotifsRef.current = shownNotifsRef.current.concat(["paulson_4"]);
+      var p4 = NOTIFICATIONS.filter(function(n){ return n.id === "paulson_4"; })[0];
+      if (p4) setTimeout(function(){ setPendingNotif(p4); }, 3000);
+    }
+
+    // Gates path — restraint trigger
+    if ((gameState.restrainedChoices||0) >= 2 && !gameState.billionaireMode
+        && shownNotifsRef.current.indexOf("gates_trigger") < 0) {
+      shownNotifsRef.current = shownNotifsRef.current.concat(["gates_trigger"]);
+      var gn = NOTIFICATIONS.filter(function(n){ return n.gatesPath; })[0];
+      if (gn) setTimeout(function(){ setPendingNotif(gn); }, 2500);
+    }
+  }, [passiveIncome, gameState.paulsonContact, gameState.restrainedChoices, gameState.billionaireMode]);
+
+
+  // ── RESTRAINT TRIGGERED NOTIFICATIONS ──
+  useEffect(function() {
+    if ((gameState.restrainedChoices||0) >= 2 && !gameState.billionaireMode
+        && shownNotifsRef.current.indexOf("gates_trigger") < 0) {
+      shownNotifsRef.current = shownNotifsRef.current.concat(["gates_trigger"]);
+      var gn = NOTIFICATIONS.filter(function(n){ return n.gatesPath; })[0];
+      if (gn) setTimeout(function(){ setPendingNotif(gn); }, 2000);
+    }
+  }, [gameState.restrainedChoices, gameState.billionaireMode]);
+
   // ── WIN CONDITION CHECKS ──
   useEffect(function() {
-    if (passiveIncome >= MOGUL_PASSIVE_TARGET && tierScreen === "tycoon_chase") {
-      setTierScreen("mogul");
-    } else if (passiveIncome >= calcTarget(winAmount) && tierScreen === "none" && passiveIncome > 0) {
-      setTierScreen("suburban");
+    if (tierScreen === "tycoon_chase") {
+      if (passiveIncome >= MOGUL_PASSIVE_TARGET) { setTierScreen("mogul"); return; }
+      if (totalAssets >= TYCOON_ASSET_TARGET) { setTierScreen("tycoon"); return; }
     }
-    if (totalAssets >= TYCOON_ASSET_TARGET && tierScreen === "tycoon_chase") {
-      setTierScreen("tycoon");
+    if (tierScreen === "none" && passiveIncome > 0) {
+      var target = calcTarget(winAmount);
+      if (passiveIncome >= target) {
+        setTierScreen("suburban");
+      }
     }
-  }, [passiveIncome, totalAssets, tierScreen]);
+  }, [passiveIncome, totalAssets, tierScreen, winAmount]);
 
   var handleStart = useCallback(function(amt) {
     setWinAmount(amt);
@@ -3162,6 +3183,12 @@ function GameCore(props) {
   }, []);
 
   var handleHome = useCallback(function() {
+    // If in tycoon mode, return to tycoon dashboard not root menu
+    if (gsRef.current && gsRef.current.tycoonMode) {
+      setShowTycoon(true);
+      setPendingOutcome(null);
+      return;
+    }
     setNodeKey("root");
     setNodeHistory([]);
     setPendingOutcome(null);
