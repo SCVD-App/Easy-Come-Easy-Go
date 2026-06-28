@@ -23,6 +23,7 @@
 <div id="root"></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script>
 var useState = React.useState;
 var useEffect = React.useEffect;
@@ -315,24 +316,46 @@ function ScorecardModal(props) {
             onClick: function() {
               var appUrl = "https://scvd-app.github.io/Easy-Come-Easy-Go";
               var scoreStr = entry.score !== null ? entry.score.toFixed(1) : "infinity";
-              var diffStr = diff.icon + " " + diff.label;
-              var summaryLine = fmtShortWin(entry.winAmount) + " win → " + fmtShortPassive(entry.passive) + "/mo = " + scoreStr;
-              var shareText =
-                "I just played Ez C Ez G and I've got receipts." + "\n\n" +
-                summaryLine + "\n" +
-                scoreLabel.label + " · " + entry.strategy + " · " + diffStr + "\n\n" +
-                "Wanna give it a try?" + "\n" +
-                appUrl;
-              if (navigator.share) {
-                navigator.share({
-                  title: "Ez C Ez G — " + scoreStr,
-                  text: shareText,
-                  url: appUrl
-                }).catch(function(){
-                  navigator.clipboard && navigator.clipboard.writeText(shareText);
-                });
+              var el = document.getElementById("eceg-scorecard");
+
+              function shareAsText() {
+                var summaryLine = fmtShortWin(entry.winAmount) + " win → " + fmtShortPassive(entry.passive) + "/mo = " + scoreStr;
+                var shareText = "I just played Ez C Ez G and I've got receipts.\n\n" +
+                  summaryLine + "\n" + scoreLabel.label + " · " + entry.strategy + "\n\n" +
+                  "Wanna give it a try?\n" + appUrl;
+                if (navigator.share) {
+                  navigator.share({ title:"Ez C Ez G", url: appUrl, text: shareText })
+                    .catch(function(){ navigator.clipboard && navigator.clipboard.writeText(shareText + "\n" + appUrl); });
+                } else {
+                  navigator.clipboard && navigator.clipboard.writeText(shareText + "\n" + appUrl);
+                }
+              }
+
+              // Try image share via html2canvas
+              if (el && typeof html2canvas !== "undefined" && navigator.canShare) {
+                html2canvas(el, {
+                  backgroundColor: "#0d0d00",
+                  scale: 2,
+                  useCORS: true,
+                  logging: false
+                }).then(function(canvas) {
+                  canvas.toBlob(function(blob) {
+                    if (!blob) { shareAsText(); return; }
+                    var file = new File([blob], "eceg-score-" + scoreStr + ".png", { type:"image/png" });
+                    var shareData = {
+                      title: "Ez C Ez G — " + scoreStr,
+                      text: "Wanna give it a try? " + appUrl,
+                      files: [file]
+                    };
+                    if (navigator.canShare(shareData)) {
+                      navigator.share(shareData).catch(function(){ shareAsText(); });
+                    } else {
+                      shareAsText();
+                    }
+                  }, "image/png");
+                }).catch(function(){ shareAsText(); });
               } else {
-                navigator.clipboard && navigator.clipboard.writeText(shareText);
+                shareAsText();
               }
             },
             style:{ flex:1, background:"linear-gradient(135deg,#C9A84C,#8B6914)",
@@ -3344,16 +3367,18 @@ function App() {
     }
   }
 
+  var showTycoonRef = useRef(false);
+  useEffect(function(){ showTycoonRef.current = showTycoon; }, [showTycoon]);
+
   var handleHome = useCallback(function() {
     var gs = gsRef.current;
     if (gs && (gs.tycoonMode || gs.billionaireMode)) {
-      // Return to tycoon dashboard if it was open, else bill root
-      if (showTycoon) { setPendingOutcome(null); return; }
+      if (showTycoonRef.current) { setPendingOutcome(null); return; }
       setShowTycoon(false);
     }
     setNodeKey(gsRef.current && gsRef.current.billionaireMode ? "bill_root" : "root");
     setNodeHistory([]); setPendingOutcome(null);
-  }, [showTycoon]);
+  }, []);
 
   var handleStart = useCallback(function(amt, name) {
     setWinAmount(amt); setPlayerName(name||""); setCash(amt); setPassiveIncome(0);
