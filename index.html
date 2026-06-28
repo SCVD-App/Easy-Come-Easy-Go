@@ -11,7 +11,7 @@
 <meta property="og:description" content="You just won the lottery. Don't blow it.">
 <meta property="og:type" content="website">
 <link rel="manifest" href="manifest.json">
-<link rel="apple-touch-icon" href="icon-192.svg">
+<link rel="apple-touch-icon" href="icon-192.png">
 <meta name="apple-mobile-web-app-title" content="Easy Come Easy Go">
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -174,13 +174,33 @@ function TombstoneScreen(props) {
         "The cheque was real. The freedom was temporary."
       ),
 
-      React.createElement("button", { className:"gbtn",
-        onClick: onRestart,
-        style:{ background:"#222", color:"#666", border:"1px solid #333",
-          padding:"0.9rem 2.5rem", fontSize:"0.9rem", fontWeight:"bold",
-          textTransform:"uppercase", cursor:"pointer", borderRadius:"4px",
-          letterSpacing:"0.1em" }
-      }, "Play Again")
+      React.createElement("div", { style:{ display:"flex", gap:"0.75rem", justifyContent:"center", flexWrap:"wrap" } },
+        React.createElement("button", {
+          onClick: function() {
+            var appUrl = "https://scvd-app.github.io/Easy-Come-Easy-Go";
+            var shareText = "I just got wiped out in Ez C Ez G." + "\n\n" +
+              playerName + " · " + timeStr + " of freedom." + "\n" +
+              (vidoDeath ? "Borrowed from Vido the Butcher. The coin said tails." : "Spent it all. No passive income. No plan.") + "\n\n" +
+              "Think you can do better?" + "\n" + appUrl;
+            if (navigator.share) {
+              navigator.share({ title:"Ez C Ez G", text:shareText, url:appUrl })
+                .catch(function(){ navigator.clipboard && navigator.clipboard.writeText(shareText); });
+            } else {
+              navigator.clipboard && navigator.clipboard.writeText(shareText);
+            }
+          },
+          style:{ background:"transparent", border:"1px solid #444",
+            borderRadius:"4px", padding:"0.75rem 1.5rem", color:"#666",
+            fontSize:"0.8rem", cursor:"pointer", letterSpacing:"0.1em" }
+        }, "📤 Share the Shame"),
+        React.createElement("button", { className:"gbtn",
+          onClick: onRestart,
+          style:{ background:"#222", color:"#666", border:"1px solid #333",
+            padding:"0.9rem 2.5rem", fontSize:"0.9rem", fontWeight:"bold",
+            textTransform:"uppercase", cursor:"pointer", borderRadius:"4px",
+            letterSpacing:"0.1em" }
+        }, "Play Again")
+      )
     )
   );
 }
@@ -293,23 +313,32 @@ function ScorecardModal(props) {
           }, "Close"),
           React.createElement("button", {
             onClick: function() {
-              var text = "Easy Come Easy Go\n" +
-                entry.name + " · " + diff.icon + " " + diff.label + "\n" +
-                "Score: " + (entry.score !== null ? entry.score.toFixed(1) : "∞") + " · " + scoreLabel.label + "\n" +
-                fmtShortWin(entry.winAmount) + " win → " + fmtShortPassive(entry.passive) + "/mo\n" +
-                "Strategy: " + entry.strategy + "\n" +
-                "Time: " + entry.timeStr + "\n" +
-                "#EasyComeEasyGo #SCVD";
+              var appUrl = "https://scvd-app.github.io/Easy-Come-Easy-Go";
+              var scoreStr = entry.score !== null ? entry.score.toFixed(1) : "infinity";
+              var diffStr = diff.icon + " " + diff.label;
+              var summaryLine = fmtShortWin(entry.winAmount) + " win → " + fmtShortPassive(entry.passive) + "/mo = " + scoreStr;
+              var shareText =
+                "I just played Ez C Ez G and I've got receipts." + "\n\n" +
+                summaryLine + "\n" +
+                scoreLabel.label + " · " + entry.strategy + " · " + diffStr + "\n\n" +
+                "Wanna give it a try?" + "\n" +
+                appUrl;
               if (navigator.share) {
-                navigator.share({ title:"Easy Come Easy Go", text:text });
+                navigator.share({
+                  title: "Ez C Ez G — " + scoreStr,
+                  text: shareText,
+                  url: appUrl
+                }).catch(function(){
+                  navigator.clipboard && navigator.clipboard.writeText(shareText);
+                });
               } else {
-                navigator.clipboard && navigator.clipboard.writeText(text);
+                navigator.clipboard && navigator.clipboard.writeText(shareText);
               }
             },
             style:{ flex:1, background:"linear-gradient(135deg,#C9A84C,#8B6914)",
               border:"none", borderRadius:"6px", padding:"0.7rem",
               color:"#0a0a0a", fontSize:"0.82rem", fontWeight:"bold", cursor:"pointer" }
-          }, "📤 Share Result")
+          }, "📤 Share + Invite")
         )
       )
     )
@@ -2999,7 +3028,27 @@ function VidoCoinFlip(props) {
                 React.createElement("span", { style:{ color:"#C0392B" } }, "They ended up sleeping with the fishes.")
               )
             ),
-            React.createElement("button", { onClick: onDeath, style:{ background:"#111", border:"1px solid #333", borderRadius:"6px", padding:"0.85rem 2rem", color:"#555", fontSize:"0.85rem", fontWeight:"bold", letterSpacing:"0.1em", textTransform:"uppercase", cursor:"pointer" } }, "Play again")
+            React.createElement("div", { style:{ display:"flex", flexDirection:"column", gap:"0.5rem", alignItems:"center" } },
+              React.createElement("button", {
+                onClick: function() {
+                  var appUrl = "https://scvd-app.github.io/Easy-Come-Easy-Go";
+                  var shareText = "The coin said tails." + "\n\n" +
+                    playerName + " borrowed from Vido the Butcher." + "\n" +
+                    "They ended up sleeping with the fishes." + "\n\n" +
+                    "Think you can do better?" + "\n" + appUrl;
+                  if (navigator.share) {
+                    navigator.share({ title:"Ez C Ez G", text:shareText, url:appUrl })
+                      .catch(function(){ navigator.clipboard && navigator.clipboard.writeText(shareText); });
+                  } else {
+                    navigator.clipboard && navigator.clipboard.writeText(shareText);
+                  }
+                },
+                style:{ background:"transparent", border:"1px solid #444", borderRadius:"6px",
+                  padding:"0.65rem 1.5rem", color:"#666", fontSize:"0.78rem",
+                  cursor:"pointer", letterSpacing:"0.08em" }
+              }, "📤 Share the Shame"),
+              React.createElement("button", { onClick: onDeath, style:{ background:"#111", border:"1px solid #333", borderRadius:"6px", padding:"0.85rem 2rem", color:"#555", fontSize:"0.85rem", fontWeight:"bold", letterSpacing:"0.1em", textTransform:"uppercase", cursor:"pointer" } }, "Play again")
+            )
           )
     )
   );
@@ -3296,9 +3345,15 @@ function App() {
   }
 
   var handleHome = useCallback(function() {
-    if (gsRef.current && gsRef.current.tycoonMode) { setShowTycoon(true); setPendingOutcome(null); return; }
-    setNodeKey("root"); setNodeHistory([]); setPendingOutcome(null); setShowTycoon(false);
-  }, []);
+    var gs = gsRef.current;
+    if (gs && (gs.tycoonMode || gs.billionaireMode)) {
+      // Return to tycoon dashboard if it was open, else bill root
+      if (showTycoon) { setPendingOutcome(null); return; }
+      setShowTycoon(false);
+    }
+    setNodeKey(gsRef.current && gsRef.current.billionaireMode ? "bill_root" : "root");
+    setNodeHistory([]); setPendingOutcome(null);
+  }, [showTycoon]);
 
   var handleStart = useCallback(function(amt, name) {
     setWinAmount(amt); setPlayerName(name||""); setCash(amt); setPassiveIncome(0);
@@ -3498,9 +3553,9 @@ function App() {
   if(notifResult){content=React.createElement(NotifResult,{msg:notifResult.msg,cost:notifResult.cost,gain:notifResult.gain||0,passiveAdd:notifResult.passiveAdd||0,isGamble:notifResult.isGamble,won:notifResult.won,onContinue:handleNotifResultDone});}
   else if(pendingEvent){content=React.createElement(EventCard,{event:pendingEvent,onContinue:handleEvent});}
   else if(pendingOutcome){content=React.createElement(OutcomeCard,{text:pendingOutcome.text,onContinue:handleOutcome});}
+  else if((gameState.tycoonMode||gameState.billionaireMode)&&showTycoon){content=React.createElement(TycoonDashboard,{cash:cash,passiveIncome:passiveIncome,gameState:gameState,totalAssets:totalAssets,onAcquire:handleAcquire,onFinance:handleFinanceOpen,onSailOff:function(){handleSailOff(totalAssets>=10000000?"mogul":"suburban");}});}
   else if(gameState.billionaireMode&&!gameState.billFoundationPct){content=React.createElement(DecisionCard,{nodeKey:nodeKey.startsWith("bill_")?nodeKey:"bill_root",gameState:gameState,cash:cash,onChoice:handleChoice,onBack:handleBack,onFinance:handleFinanceOpen});}
   else if(nodeKey.startsWith("politico_")){content=React.createElement(DecisionCard,{nodeKey:nodeKey,gameState:gameState,cash:cash,onChoice:handleChoice,onBack:handleBack,onFinance:handleFinanceOpen});}
-  else if(gameState.tycoonMode&&showTycoon){content=React.createElement(TycoonDashboard,{cash:cash,passiveIncome:passiveIncome,gameState:gameState,totalAssets:totalAssets,onAcquire:handleAcquire,onFinance:handleFinanceOpen,onSailOff:function(){handleSailOff(totalAssets>=10000000?"mogul":"suburban");}});}
   else{content=React.createElement(React.Fragment,null,React.createElement(DecisionCard,{nodeKey:nodeKey,gameState:gameState,cash:cash,onChoice:handleChoice,onBack:handleBack,onFinance:handleFinanceOpen}),nodeKey==="root"&&React.createElement(StatusBar,{gameState:gameState,annualCosts:annualCosts}));}
 
   return React.createElement("div",{style:{minHeight:"100vh",background:C.black,color:C.white,fontFamily:"Georgia,serif"}},
