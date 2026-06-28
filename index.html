@@ -11,6 +11,8 @@
 <meta property="og:description" content="You just won the lottery. Don't blow it.">
 <meta property="og:type" content="website">
 <link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.svg">
+<meta name="apple-mobile-web-app-title" content="Easy Come Easy Go">
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { background: #0a0a0a; font-family: Georgia, serif; }
@@ -862,6 +864,7 @@ function nodeBillRoot(gs) {
   if (!gs.hasEquity) choices.push({ label: "🌟 Staff equity scheme", next: "bill_equity" });
   if (!gs.hasIpod) choices.push({ label: "🚀 IPO — go public", next: "bill_ipo" });
   choices.push({ label: "❤️ The foundation — give it all away", next: "bill_foundation" });
+  if (gs.tycoonMode) choices.push({ label: "🏗️ Tycoon Dashboard — buy the big assets", next: "__tycoon__" });
   var text = (gs.billNetWorth || 0) === 0
     ? "The meeting with Richard changed your thinking. The lottery money isn't a windfall — it's seed capital. What do you build first?"
     : "Net worth: " + nw + ". Dubious index: " + dubious + ". The empire is taking shape. What's the next move?";
@@ -1434,6 +1437,50 @@ var NOTIFICATIONS = [
     body:"CONGRATULATIONS! You have been selected as the winner of the UK National Lottery International Draw — PRIZE: GBP 2,500,000. To claim your prize please send AUD $8,500 processing and insurance fee to our claims office. Your claim number: UKL-2024-447821-AU. Offer expires 48 hours.",
     acceptLabel:"Send $8,500 to claim prize", rejectLabel:"Ignore",
     onAccept: { cost:8500, passiveAdd:0, msg:"You send $8,500. The UK National Lottery International Draw does not exist. You have not won GBP 2,500,000. You have lost $8,500. You did not enter this lottery. These are all related facts." }
+  },
+
+  // ── FAMILY & SOCIAL ──
+  { type:"sms", tier:"neutral", from:"Mum", preview:"Heard the news!! So proud of you...",
+    body:"Heard the news!! So proud of you sweetheart. Your father and I were thinking — if you ever wanted to help us with the kitchen renovation we've been putting off... only if you want to! No pressure at all. Love you. Call me. xx",
+    acceptLabel:"Transfer $45,000 for the reno", rejectLabel:"Call her later",
+    onAccept:{ cost:45000, passiveAdd:0, msg:"The kitchen is done in six weeks. Your mum sends photos every day. Your dad rings to say it's 'very nice' which from him is effusive praise. Worth every cent." },
+    onReject:{ cost:0, passiveAdd:0, msg:"You call her. She's thrilled just to hear your voice. The kitchen comes up twice. You change the subject both times. She lets it go. For now." }
+  },
+  { type:"sms", tier:"neutral", from:"Uncle Barry", preview:"Mate! Big winner hey!!",
+    body:"Mate!! Big winner hey! Good on ya. Listen — I've got this opportunity, mate of mine has a property development up the coast, needs a silent investor, minimum $200k, returns are incredible. Happy to put in a word. Give us a call.",
+    acceptLabel:"Invest $200,000 with Uncle Barry's mate", rejectLabel:"Thanks Barry, I'm good",
+    onAccept:{ cost:200000, passiveAdd:0, msg:"The development stalls at the planning stage. Barry's mate goes quiet. Barry says he's 'working on it'. The $200,000 is almost certainly gone. At Christmas Barry brings very good wine and doesn't mention it. You don't either." },
+    onReject:{ cost:0, passiveAdd:0, msg:"Barry takes it well. He calls you 'smart' in a way that suggests he's slightly annoyed. He texts again three weeks later with a different opportunity. You don't reply to that one either." }
+  },
+  { type:"sms", tier:"neutral", from:"Cousin Damo", preview:"Oi legend!! Heard about the lotto...",
+    body:"Oi LEGEND!! Heard about the lotto. Absolute gun mate. Hey so I've been working on this app idea for about 3 years now, just need a bit of seed funding to get it off the ground, like $50k would do it, happy to give you 30% equity. It's basically Uber but for lawn mowing. Let me know!!",
+    acceptLabel:"Give Damo $50,000 for the lawn app", rejectLabel:"Pass, mate",
+    onAccept:{ cost:50000, passiveAdd:0, msg:"Damo spends $8,000 on a logo. The app is never built. At the next family barbecue he tells everyone he's 'between development cycles'. You nod. The $50,000 buys you the right to never mention it." },
+    onReject:{ cost:0, passiveAdd:0, msg:"Damo says 'no worries legend' and you don't hear from him for four months. Then he texts asking if you know any investors." }
+  },
+  { type:"sms", tier:"neutral", from:"Old school mate", preview:"Bro!! Massive congrats...",
+    body:"Bro!! Massive congrats, you deserve it. Hey completely unrelated — remember when I helped you move that bookshelf back in 2019? Just saying. Anyway hope you're well, we should catch up for a beer sometime, my shout obviously ha ha... unless you want to get it.",
+    acceptLabel:"Shout him dinner — $380", rejectLabel:"Suggest he owes you for the other bookshelf",
+    onAccept:{ cost:380, passiveAdd:0, msg:"Great dinner. He mentions the bookshelf twice more. You don't. The friendship survives." },
+    onReject:{ cost:0, passiveAdd:0, msg:"He sends back three laughing emojis and then goes quiet for a suspiciously long time." }
+  },
+  { type:"sms", tier:"neutral", from:"Sister", preview:"Hey!! So amazing, so happy for you...",
+    body:"Hey!! So amazing, so happy for you!! We're all so proud. Hey so you know how Tom and I have been wanting to take the kids to Europe? We've been saving for two years but it's just so expensive... we'd obviously pay you back. Maybe $15,000? Only if it's easy for you. No pressure!",
+    acceptLabel:"Sort the Europe trip — $15,000", rejectLabel:"Suggest they keep saving",
+    onAccept:{ cost:15000, passiveAdd:0, msg:"The family sends photos from Rome, Paris, London. Your nephew calls it 'the best holiday ever'. Your sister cries when she thanks you. She pays back $4,000 over the next year without being asked. You tell her to stop." },
+    onReject:{ cost:0, passiveAdd:0, msg:"She completely understands. She texts three weeks later to say they found flights on sale and they're going anyway. You feel both relieved and slightly guilty." }
+  },
+  { type:"call", tier:"neutral", from:"Dad", preview:"Just checking in son...",
+    body:"Just checking in, son. Your mother says you've been busy. Good. Listen — don't go mad with it. I knew a bloke who won a lot of money once. Spent it all in three years. Cars and holidays. Nothing to show for it. Invest in land. That's what I'd do. Anyway. How are you?",
+    acceptLabel:"Have the conversation — invite him for lunch", rejectLabel:"Tell him you have it under control",
+    onAccept:{ cost:220, passiveAdd:0, msg:"Lunch is excellent. He orders the second-cheapest thing on the menu out of habit. You insist on paying. He argues briefly then accepts. He gives you three pieces of financial advice, all of them correct, none of them you didn't already know. It's a good afternoon." },
+    onReject:{ cost:0, passiveAdd:0, msg:"'Good,' he says. 'Just checking.' He asks about the weather where you are. You talk for seven minutes. He says 'righto' three times. You both hang up feeling fine." }
+  },
+  { type:"sms", tier:"neutral", from:"Work colleague", preview:"Hey mate, heard the news congrats!",
+    body:"Hey mate, heard the news congrats! That's amazing. Hey did you see they replaced you with two contractors and a 'productivity initiative'? Your old job posting is literally on Seek. Anyway hope you're living your best life. Dave says hi.",
+    acceptLabel:"Like the message", rejectLabel:"Leave on read",
+    onAccept:{ cost:0, passiveAdd:0, msg:"You double-tap it. Then you close the app and go for a drive." },
+    onReject:{ cost:0, passiveAdd:0, msg:"You screenshot it and send it to no one. You just keep it. For reasons." }
   },
 
   // ── POLITICO APPROACH ──
@@ -3197,7 +3244,7 @@ function App() {
         setPendingEvent(pool[Math.floor(Math.random()*pool.length)]);
         return;
       }
-      if (nw >= 2 && nw - lastNotifWeek.current >= 3 && Math.random() < 0.65) {
+      if (nw >= 2 && nw - lastNotifWeek.current >= 2 && Math.random() < 0.72) {
         lastNotifWeek.current = nw;
         var gs = gsRef.current;
         var streak = gs.gamblingStreak||0;
