@@ -19,87 +19,15 @@
 </head>
 <body>
 <div id="root"></div>
-
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
 <script>
-// Polyfill React hooks from global
 var useState = React.useState;
 var useEffect = React.useEffect;
 var useRef = React.useRef;
 var useCallback = React.useCallback;
 </script>
-
 <script>
-
-
-// ── PASSIVE INCOME GLOW OVERLAY ──────────────────────────
-function PassiveGlowOverlay(props) {
-  var amount = props.amount;
-  var message = props.message || "Passive income credited";
-  if (!amount) return null;
-
-  var formatted = amount >= 1000
-    ? "+$" + Math.round(amount).toLocaleString("en-AU")
-    : "+$" + Math.round(amount);
-
-  return React.createElement("div", {
-    style: {
-      position:"fixed", inset:0, zIndex:500,
-      pointerEvents:"none", overflow:"hidden"
-    }
-  },
-    // Four edge glow panels — same as Mic Drop VIP
-    React.createElement("div", { style:{
-      position:"absolute", top:0, left:0, right:0, height:"180px",
-      background:"linear-gradient(to bottom, #C9A84C55, transparent)",
-      animation:"edgeGlow 2.8s ease forwards"
-    }}),
-    React.createElement("div", { style:{
-      position:"absolute", bottom:0, left:0, right:0, height:"180px",
-      background:"linear-gradient(to top, #C9A84C55, transparent)",
-      animation:"edgeGlow 2.8s ease forwards"
-    }}),
-    React.createElement("div", { style:{
-      position:"absolute", top:0, bottom:0, left:0, width:"120px",
-      background:"linear-gradient(to right, #C9A84C44, transparent)",
-      animation:"edgeGlow 2.8s ease forwards"
-    }}),
-    React.createElement("div", { style:{
-      position:"absolute", top:0, bottom:0, right:0, width:"120px",
-      background:"linear-gradient(to left, #C9A84C44, transparent)",
-      animation:"edgeGlow 2.8s ease forwards"
-    }}),
-
-    // Central toast — amount + message
-    React.createElement("div", {
-      style:{
-        position:"absolute", top:"50%", left:"50%",
-        transform:"translate(-50%,-50%)",
-        textAlign:"center", pointerEvents:"none"
-      }
-    },
-      React.createElement("div", {
-        style:{
-          fontSize:"clamp(2rem,6vw,3.5rem)", fontWeight:900,
-          color:"#C9A84C", fontFamily:"Georgia,serif",
-          animation:"passiveSlide 2.8s ease forwards",
-          textShadow:"0 0 40px #C9A84C, 0 0 80px #C9A84C88",
-          letterSpacing:"0.02em", lineHeight:1
-        }
-      }, formatted),
-      React.createElement("div", {
-        style:{
-          fontSize:"clamp(0.75rem,2vw,0.95rem)",
-          color:"#f5f3ee", marginTop:"0.5rem",
-          letterSpacing:"0.15em", textTransform:"uppercase",
-          animation:"passiveGlow 2.8s ease forwards",
-          textShadow:"0 0 20px #C9A84C88"
-        }
-      }, message)
-    )
-  );
-}
 
 // ── OZMANIAN NAME GENERATOR ───────────────────────────────
 var OZ_FIRST = ["Rex","Barry","Dazza","Bazza","Shazza","Gazza","Cobber","Bluey","Macca","Johnno","Robbo","Smithy","Wazza","Mungo","Nugget","Trev","Bev","Shirl","Cheryl","Bron","Darko","Stavros","Rosco","Thommo","Cazza"];
@@ -695,93 +623,6 @@ function nodeQuitBand(gs) {
   return { text: "The brass band plays your chosen walk-out anthem." + (gs.house ? " You invite the whole office back to the " + gs.houseName + " for drinks afterward." : "") + " Colleagues cry, clap, and film it. A good human being.", outcome: true, cost: 8000, choices: [{ label: "→ What's next?", next: "root" }], action: function(g) { return Object.assign({}, g, { quitJob: true, quitStyle: "band" }); } };
 }
 
-// ── FUN STUFF ─────────────────────────────────────────────
-function nodeFunStuff(gs) {
-  return {
-    text: gs.holidays && gs.holidays.length > 0
-      ? "You've seen " + gs.holidays.join(", ") + ". The world's still full of possibilities."
-      : "The money's there. The time's yours. What's calling?",
-    choices: [
-      { label: "✈️ Holidays — first class, obviously", next: "take_holiday" },
-      { label: "🏎️ Big Boys Toys — sparkly depreciation", next: "big_boys_toys" },
-      { label: "💍 For the Ladies — the finer things", next: "for_the_ladies" },
-    ]
-  };
-}
-
-function nodeBigBoysToys(gs) {
-  var owned = gs.bigToys || [];
-  return {
-    text: owned.length > 0
-      ? "The garage is getting interesting. What's next?"
-      : "Sparkly depreciation. Every man's birthright. Choose wisely — or don't.",
-    choices: [
-      { label: "🚤 Prestige powerboat — wake, speed, regret — $320,000", next: "toy_boat", cost: 320000 },
-      { label: "🚁 Helicopter lessons + R44 — $280,000", next: "toy_heli", cost: 280000 },
-      { label: "🏍️ Ducati Panigale V4 + leathers — $48,000", next: "toy_moto", cost: 48000 },
-      { label: "🎸 Custom guitar collection — 12 instruments — $95,000", next: "toy_guitars", cost: 95000 },
-      { label: "⛳ TopDrive Golf Simulator Suite — $65,000", next: "toy_golf", cost: 65000 },
-      { label: "🏎️ Track day package — Queenslandia Raceway, 12 sessions — $28,000", next: "toy_track", cost: 28000 },
-    ]
-  };
-}
-
-function nodeToyBoat(gs) {
-  return { text: "Forty-two feet of fibreglass ego. It sits in the marina at Coastside looking incredible. You take it out on weekends. The fuel bill is extraordinary. The sunsets are better than anything you ever saw from a desk." + (gs.house === "canal" ? " The jetty at " + gs.houseName + " fits it perfectly." : ""), outcome: true, cost: 320000, annualAdd: 28000, choices: [{ label: "→ Worth it", next: "root" }], action: function(g) { return Object.assign({}, g, { bigToys: (g.bigToys||[]).concat(["Powerboat"]) }); } };
-}
-function nodeToyHeli(gs) {
-  return { text: "Sixty hours of lessons. The R44 is yours. The first solo flight over the Coastal region at sunrise — there are no words for it. Your instructor says you have natural spatial awareness. You choose to believe him completely.", outcome: true, cost: 280000, annualAdd: 22000, choices: [{ label: "→ Worth every cent", next: "root" }], action: function(g) { return Object.assign({}, g, { bigToys: (g.bigToys||[]).concat(["Helicopter"]) }); } };
-}
-function nodeToyMoto(gs) {
-  return { text: "The Ducati arrives in a crate from Italy. Red. Obviously red. The leathers are custom — your initials stitched inside the collar. You take it down the coastal road at 5am on a Sunday." + (gs.house === "rural" ? " The dirt roads near " + gs.houseName + " are not suitable. You ride the highway instead." : "") + " It is the most alive you have felt since the cheque cleared.", outcome: true, cost: 48000, annualAdd: 4500, choices: [{ label: "→ The road was made for this", next: "root" }], action: function(g) { return Object.assign({}, g, { bigToys: (g.bigToys||[]).concat(["Ducati"]) }); } };
-}
-function nodeToyGuitars(gs) {
-  return { text: "Twelve instruments. A '59 Les Paul reissue. A Collings OM2H. A Gretsch White Falcon. A Brazilian rosewood Martin. You play three of them well. The others you play badly but enthusiastically. The room they're in smells like nitrocellulose and ambition.", outcome: true, cost: 95000, annualAdd: 0, choices: [{ label: "→ Every one of them was necessary", next: "root" }], action: function(g) { return Object.assign({}, g, { bigToys: (g.bigToys||[]).concat(["Guitar Collection"]) }); } };
-}
-function nodeToyGolf(gs) {
-  return { text: "A TopDrive simulator suite installed in the garage — or the spare room, or wherever it fits. Full swing analysis, 30 courses, a putting green mat that cost more than most people's cars. Your handicap improves three shots. Your stories about your handicap improve considerably more.", outcome: true, cost: 65000, annualAdd: 0, choices: [{ label: "→ Eighteen holes before breakfast", next: "root" }], action: function(g) { return Object.assign({}, g, { bigToys: (g.bigToys||[]).concat(["Golf Simulator"]) }); } };
-}
-function nodeToyTrack(gs) {
-  return { text: "Queenslandia Raceway. Twelve track days. A professional instructor who says 'trust the car' a lot. By session four you actually trust the car." + (gs.car ? " You bring the " + gs.carName + " for two sessions. The rest you drive club cars, which is humbling and educational." : "") + " You understand now why people do this until they're seventy.", outcome: true, cost: 28000, annualAdd: 0, choices: [{ label: "→ Book next year's package already", next: "root" }], action: function(g) { return Object.assign({}, g, { bigToys: (g.bigToys||[]).concat(["Track Days"]) }); } };
-}
-
-function nodeForTheLadies(gs) {
-  var owned = gs.lady || [];
-  return {
-    text: owned.length > 0
-      ? "The finer things. You've developed a taste. What's next?"
-      : "The things worth having. The things worth giving. The things worth keeping.",
-    choices: [
-      { label: "💎 Private jeweller — bespoke fine jewellery — $95,000", next: "lady_jewels", cost: 95000 },
-      { label: "👗 Paris fashion week — front row, full wardrobe — $85,000", next: "lady_paris", cost: 85000 },
-      { label: "🛁 Spa and wellness retreat — 3 weeks, Southvale River — $38,000", next: "lady_spa", cost: 38000 },
-      { label: "🎨 Private art acquisition — emerging Ozmanian artists — $120,000", next: "lady_art", cost: 120000 },
-      { label: "🏰 Château wine tour — Southvale River, 10 days — $62,000", next: "lady_wine", cost: 62000 },
-      { label: "🏠 Home renovation — no budget conversation — $180,000", next: "lady_reno", cost: 180000 },
-    ]
-  };
-}
-
-function nodeLadyJewels(gs) {
-  return { text: "A private jeweller in the Meridian Quarter. By appointment only. The pieces are made over six weeks — you're consulted at each stage. The finished work is worn exactly once to a function and then kept in a velvet box that costs more than most wedding rings.", outcome: true, cost: 95000, choices: [{ label: "→ Worth every carat", next: "root" }], action: function(g) { return Object.assign({}, g, { lady: (g.lady||[]).concat(["Fine Jewellery"]) }); } };
-}
-function nodeLadyParis(gs) {
-  return { text: "Front row at three shows. A private styling consultation. A wardrobe packed in cases you need help lifting. You come home with an understanding of proportion and colour that you cannot fully explain but will never lose. Also sixteen kilograms of luggage over the limit.", outcome: true, cost: 85000, choices: [{ label: "→ Front row changes you", next: "root" }], action: function(g) { return Object.assign({}, g, { lady: (g.lady||[]).concat(["Paris Fashion Week"]) }); } };
-}
-function nodeLadySpa(gs) {
-  return { text: "Three weeks in the Southvale River Valley. Stone massage, organic everything, a naturopath who asks questions nobody has ever asked you before. You cry twice. Both times feel correct. You return looking, according to three separate people, 'different somehow'. You know exactly how.", outcome: true, cost: 38000, choices: [{ label: "→ The best money I've spent", next: "root" }], action: function(g) { return Object.assign({}, g, { lady: (g.lady||[]).concat(["Wellness Retreat"]) }); } };
-}
-function nodeLadyArt(gs) {
-  return { text: "Eight pieces from Ozmanian artists on the cusp. Your art advisor says two of them will be significant within five years. You don't buy them as investments — you buy them because they make you feel something standing in front of them." + (gs.house ? " They look extraordinary in " + gs.houseName + "." : "") + " One of the artists sends a handwritten thank-you note.", outcome: true, cost: 120000, choices: [{ label: "→ Art that means something", next: "root" }], action: function(g) { return Object.assign({}, g, { lady: (g.lady||[]).concat(["Art Collection"]) }); } };
-}
-function nodeLadyWine(gs) {
-  return { text: "Ten days in Southvale River. Small producers, private cellars, lunch that starts at noon and ends when someone checks their watch and it's four. You come home with a case of something exceptional and an embarrassing amount of knowledge about tannins.", outcome: true, cost: 62000, choices: [{ label: "→ The education was worth it", next: "root" }], action: function(g) { return Object.assign({}, g, { lady: (g.lady||[]).concat(["Château Wine Tour"]) }); } };
-}
-function nodeLadyReno(gs) {
-  var houseTxt = gs.house ? "The " + gs.houseName + " gets" : "The house gets";
-  return { text: houseTxt + " the renovation it deserved. No budget conversation — that was the brief. The architect heard you. The builder heard the architect. Six months later you walk through it and feel the specific satisfaction of a thing done properly, without compromise, exactly once.", outcome: true, cost: 180000, choices: [{ label: "→ Done properly or not at all", next: "root" }], action: function(g) { return Object.assign({}, g, { lady: (g.lady||[]).concat(["Home Renovation"]) }); } };
-}
-
 function nodeBuyCar(gs) {
   return {
     text: gs.car ? "The " + gs.carName + " is already in the garage. Room for one more?" : "The dealer is waiting. What are you driving out in?",
@@ -848,16 +689,6 @@ function nodeHolMaldives(gs) { return { text: "Private island. Your own chef, re
 function nodeHolCruise(gs) { return { text: "World cruise. Owner's suite. 120 nights, 50 ports. By Day 60 you're bored. By Day 90 you've solved several mysteries about yourself. By Day 120 you're a different person.", outcome: true, cost: 340000, choices: [{ label: "→ What's next?", next: "root" }], action: function(g) { return Object.assign({}, g, { holidays: g.holidays.concat(["World Cruise"]) }); } }; }
 function nodeHolJapan(gs) { return { text: "Japan. Three weeks, ryokans, bullet trains, wagyu that dissolves." + (gs.house === "rural" ? " You come home to 200 acres and feel the contrast sharply." : "") + " You spend $8,000 on kitchen knives. Zero regrets.", outcome: true, cost: 45000, choices: [{ label: "→ What's next?", next: "root" }], action: function(g) { return Object.assign({}, g, { holidays: g.holidays.concat(["Japan"]) }); } }; }
 function nodeHolVegas(gs) { return { text: "Vegas. High roller suite, front-row shows, the full catastrophe." + (gs.car ? " You miss the " + gs.carName + " immediately." : "") + " Day 3 you're $180,000 down at the baccarat table. The house always wins.", outcome: true, cost: 60000, bonusLoss: 180000, choices: [{ label: "→ What's next?", next: "root" }], action: function(g) { return Object.assign({}, g, { holidays: g.holidays.concat(["Vegas (ouch)"]) }); } }; }
-
-function nodeInvPolitical(gs) {
-  return {
-    text: "There's a dinner. Black tie, $500,000 table, strictly by introduction only. The party hierarchy is there. The shadow ministers who'll be ministers after the next election are there. A senior advisor pulls you aside over dessert and says, very quietly, 'There's someone you should meet.' His name is Murray Cresswell MP.",
-    outcome: true,
-    cost: 500000,
-    choices: [{ label: "→ Murray Cresswell. Interesting.", next: "root" }],
-    action: function(g) { return Object.assign({}, g, { hasMadePoliticalDonation: true, legacyScore: (g.legacyScore||0) - 10 }); }
-  };
-}
 
 function nodeInvest(gs) {
   var pct = Math.round((gs.passiveIncome / (gs.luxuryTarget || LUXURY_TARGET_MAX)) * 100);
@@ -1045,10 +876,12 @@ function nodeBillBuild(gs) {
 }
 function nodeBillBuildSaas(gs) {
   return { text: "You build a SaaS platform for enterprise compliance management. Boring name, boring problem, enormous market. Year one: 40 clients at $4,000/month each. The Camry is still in the car park. Nobody at the office knows about the lottery.", outcome: true, cost: 3000000, choices: [{ label: "→ What's next?", next: "bill_root" }],
+    passiveAdd: 160000,
     action: function(g) { return Object.assign({}, g, { billNetWorth: (g.billNetWorth||0)+8000000, billAssets: (g.billAssets||[]).concat([{ name:"Compliance SaaS Platform", icon:"⚙️", value:8000000 }]) }); } };
 }
 function nodeBillBuildLogistics(gs) {
   return { text: "Route optimisation software. Three trucking companies sign on in month one. By month six you have fourteen. The algorithm gets smarter with every delivery. $5M in, $18M valuation by year end. The Camry handles the commute fine.", outcome: true, cost: 5000000, choices: [{ label: "→ What's next?", next: "bill_root" }],
+    passiveAdd: 85000,
     action: function(g) { return Object.assign({}, g, { billNetWorth: (g.billNetWorth||0)+18000000, billAssets: (g.billAssets||[]).concat([{ name:"Logistics Tech Platform", icon:"🚚", value:18000000 }]) }); } };
 }
 function nodeBillBuildProptech(gs) {
@@ -1413,7 +1246,6 @@ const NODES = {
   hol_europe: nodeHolEurope, hol_maldives: nodeHolMaldives, hol_cruise: nodeHolCruise,
   hol_japan: nodeHolJapan, hol_vegas: nodeHolVegas,
   invest: nodeInvest,
-  inv_political: nodeInvPolitical,
   inv_property: nodeInvProperty,
   inv_prop_bne: nodeInvPropBne, inv_prop_reg: nodeInvPropReg,
   inv_prop_syd: nodeInvPropSyd, inv_prop_hol: nodeInvPropHol,
@@ -1455,16 +1287,6 @@ const NODES = {
   wife_portfolio: nodeWifePortfolio, wife_small: nodeWifeSmall, wife_mid: nodeWifeMid, wife_large: nodeWifeLarge,
   give_family: nodeGiveFamily, give_parents: nodeGiveParents, give_parents_done: nodeGiveParentsDone,
   give_charity: nodeGiveCharity, give_mate: nodeGiveMate, give_mate_done: nodeGiveMateDone,
-  fun_stuff: nodeFunStuff,
-  big_boys_toys: nodeBigBoysToys,
-  toy_boat: nodeToyBoat, toy_heli: nodeToyHeli, toy_moto: nodeToyMoto,
-  toy_guitars: nodeToyGuitars, toy_golf: nodeToyGolf, toy_track: nodeToyTrack,
-  for_the_ladies: nodeForTheLadies,
-  lady_jewels: nodeLadyJewels, lady_paris: nodeLadyParis, lady_spa: nodeLadySpa,
-  lady_art: nodeLadyArt, lady_wine: nodeLadyWine, lady_reno: nodeLadyReno,
-  take_holiday: nodeTakeHoliday,
-  hol_europe: nodeHolEurope, hol_maldives: nodeHolMaldives, hol_cruise: nodeHolCruise,
-  hol_japan: nodeHolJapan, hol_vegas: nodeHolVegas,
 };
 
 // ── RANDOM EVENTS ─────────────────────────────────────────
@@ -1652,10 +1474,8 @@ function getNotification(gs, shownIds) {
   var available = [];
   for (var i = 0; i < NOTIFICATIONS.length; i++) {
     var n = NOTIFICATIONS[i];
-    // Skip special-purpose notifications handled by dedicated triggers
     if (n.gatesPath || n.paulsonStructureTrigger || n.paulsonContact || n.politicoTrigger) continue;
     if (n.id === "paulson_2" || n.id === "paulson_3" || n.id === "paulson_4") continue;
-    // Use string ID if available, else index string
     var nid = n.id !== undefined ? String(n.id) : String(i);
     if (shownIds.indexOf(nid) < 0) available.push({ notif: n, id: nid });
   }
@@ -2177,9 +1997,6 @@ var CSS = [
   "@keyframes gPulse{0%,100%{text-shadow:0 0 20px #C9A84C80}50%{text-shadow:0 0 60px #C9A84C}}",
   "@keyframes warn{0%,100%{opacity:1}50%{opacity:0.5}}",
   "@keyframes eIn{from{opacity:0;transform:scale(0.96)}to{opacity:1;transform:scale(1)}}",
-  "@keyframes passiveGlow{0%{opacity:0}15%{opacity:1}70%{opacity:1}100%{opacity:0}}",
-  "@keyframes passiveSlide{0%{opacity:0;transform:translateY(8px)}15%{opacity:1;transform:translateY(0)}70%{opacity:1;transform:translateY(0)}100%{opacity:0;transform:translateY(-12px)}}",
-  "@keyframes edgeGlow{0%{opacity:0}20%{opacity:1}65%{opacity:1}100%{opacity:0}}",
   ".cbtn{transition:all .16s ease !important;border:1px solid #C9A84C28 !important;}",
   ".cbtn:hover:not(.no){background:linear-gradient(135deg,#C9A84C18,transparent) !important;border-color:#C9A84C88 !important;transform:translateX(5px) !important;}",
   ".cbtn.no{opacity:.35;cursor:not-allowed !important;}",
@@ -2211,6 +2028,39 @@ function AnimatedNumber(props) {
 }
 
 // ── REVEAL SCREEN ─────────────────────────────────────────
+function RevealScreen(props) {
+  var onStart = props.onStart;
+  var amt = useState(randomWin)[0];
+  var phaseState = useState(0);
+  var phase = phaseState[0], setPhase = phaseState[1];
+  useEffect(function() {
+    var t = [
+      setTimeout(function() { setPhase(1); }, 700),
+      setTimeout(function() { setPhase(2); }, 2600),
+      setTimeout(function() { setPhase(3); }, 4200),
+    ];
+    return function() { t.forEach(function(x) { clearTimeout(x); }); };
+  }, []);
+  var rings = [1,2,3].map(function(i) {
+    return React.createElement("div", { key: i, style: { position:"absolute", borderRadius:"50%", border:"1px solid " + C.gold + (i===1?"28":i===2?"14":"0a"), width: (i*340)+"px", height: (i*340)+"px", animation: "spin " + (8+i*4) + "s linear infinite", top:"50%", left:"50%", pointerEvents:"none" } });
+  });
+  return React.createElement("div", { style: { minHeight:"100vh", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", background:"radial-gradient(ellipse at center,#1a1200 0%," + C.black + " 70%)", padding:"2rem", textAlign:"center", position:"relative", overflow:"hidden" } },
+    rings,
+    React.createElement("div", { style: { position:"relative", zIndex:1 } },
+      React.createElement("div", { style: { fontSize:"0.8rem", letterSpacing:"0.35em", color:C.gold, textTransform:"uppercase", marginBottom:"1.5rem", animation:"fadeUp 0.8s ease forwards" } }, "Queenslandiaia State Lottery"),
+      phase >= 1 && React.createElement("div", { style: { fontSize:"clamp(2rem,7vw,4rem)", fontWeight:"bold", color:C.white, marginBottom:"1rem", animation:"fadeUp 0.6s ease forwards" } }, "SATURDAY NIGHT DRAW"),
+      phase >= 2 && React.createElement("div", { style: { animation:"cardIn 0.7s cubic-bezier(0.34,1.56,0.64,1) forwards", marginBottom:"2rem" } },
+        React.createElement("div", { style: { fontSize:"clamp(3rem,11vw,7.5rem)", fontWeight:900, color:C.gold, animation:"gPulse 2s ease-in-out infinite", lineHeight:1 } }, fmtFull(amt)),
+        React.createElement("div", { style: { fontSize:"1rem", color:C.dim, letterSpacing:"0.15em", marginTop:"0.5rem", textTransform:"uppercase" } }, "You hold the winning ticket")
+      ),
+      phase >= 3 && React.createElement("div", { style: { animation:"fadeUp 0.6s ease forwards" } },
+        React.createElement("p", { style: { color:C.dim, marginBottom:"2rem", fontSize:"1.05rem", maxWidth:"460px", lineHeight:1.7 } }, "The money just cleared. Your phone hasn't stopped. Everyone you've ever met wants to catch up for coffee. What happens next is entirely up to you."),
+        React.createElement("button", { className:"gbtn", onClick:function() { onStart(amt); }, style: { background:"linear-gradient(135deg," + C.gold + ",#8B6914)", color:C.black, border:"none", padding:"1.1rem 3rem", fontSize:"1.05rem", fontWeight:"bold", letterSpacing:"0.1em", textTransform:"uppercase", cursor:"pointer", borderRadius:"4px" } }, "Begin Your New Life →")
+      )
+    )
+  );
+}
+
 // ── HUD ───────────────────────────────────────────────────
 
 // ── FINANCE MODAL ─────────────────────────────────────────
@@ -2542,8 +2392,6 @@ function StatusBar(props) {
   if (gs.givens.length > 0) items.push(React.createElement("span", { key:"give" }, "❤️ ", React.createElement("span", { style:{color:"#e88"} }, "Gave: " + gs.givens.join(", "))));
   if (annualCosts > 0) items.push(React.createElement("span", { key:"costs" }, "🔥 ", React.createElement("span", { style:{color:C.red} }, "Running costs: $" + annualCosts.toLocaleString() + "/yr")));
   if (gs.holidays.length > 0) items.push(React.createElement("span", { key:"hols" }, "✈️ ", React.createElement("span", { style:{color:C.dim} }, gs.holidays.join(", "))));
-  if (gs.bigToys && gs.bigToys.length > 0) items.push(React.createElement("span", { key:"toys" }, "🏎️ ", React.createElement("span", { style:{color:C.dim} }, gs.bigToys.join(", "))));
-  if (gs.lady && gs.lady.length > 0) items.push(React.createElement("span", { key:"lady" }, "💎 ", React.createElement("span", { style:{color:C.dim} }, gs.lady.join(", "))));
   return React.createElement("div", { style: { maxWidth:"700px", margin:"0 auto 2rem", padding:"0 1rem" } },
     React.createElement("div", { style: { background:C.dark, border:"1px solid #252525", borderRadius:"6px", padding:"0.9rem 1.3rem", fontSize:"0.78rem", color:C.dim } },
       React.createElement("div", { style: { letterSpacing:"0.15em", textTransform:"uppercase", marginBottom:"0.5rem", fontSize:"0.6rem" } }, "Your World"),
@@ -2867,247 +2715,316 @@ function WinScreen(props) {
   );
 }
 
-// ── APP ENTRY POINT ──────────────────────────────────────
-function App() {
-  return React.createElement(AppShell, null);
+// ── FUN STUFF NODES ──────────────────────────────────────
+function nodeInvPolitical(gs) {
+  return { text: "There's a dinner. Black tie, $500,000 table, strictly by introduction only. A senior advisor pulls you aside over dessert. 'There's someone you should meet.' His name is Murray Cresswell MP.", outcome: true, cost: 500000,
+    choices: [{ label: "-> Murray Cresswell. Interesting.", next: "root" }],
+    action: function(g) { return Object.assign({}, g, { hasMadePoliticalDonation: true, legacyScore: (g.legacyScore||0)-10 }); } };
 }
+function nodeFunStuff(gs) {
+  return { text: gs.holidays && gs.holidays.length > 0 ? "The world's still full of possibilities." : "The money's there. The time's yours. What's calling?",
+    choices: [
+      { label: "✈️ Holidays — first class, obviously", next: "take_holiday" },
+      { label: "🏎️ Big Boys Toys — sparkly depreciation", next: "big_boys_toys" },
+      { label: "💍 For the Ladies — the finer things", next: "for_the_ladies" },
+    ] };
+}
+function nodeBigBoysToys(gs) {
+  return { text: (gs.bigToys||[]).length > 0 ? "The garage is getting interesting. What's next?" : "Sparkly depreciation. Every person's birthright.",
+    choices: [
+      { label: "🚤 Prestige powerboat — $320,000", next: "toy_boat", cost: 320000 },
+      { label: "🚁 Helicopter lessons + R44 — $280,000", next: "toy_heli", cost: 280000 },
+      { label: "🏍️ Ducati Panigale V4 + leathers — $48,000", next: "toy_moto", cost: 48000 },
+      { label: "🎸 Custom guitar collection — 12 instruments — $95,000", next: "toy_guitars", cost: 95000 },
+      { label: "⛳ TopDrive Golf Simulator — $65,000", next: "toy_golf", cost: 65000 },
+      { label: "🏎️ Track days — 12 sessions — $28,000", next: "toy_track", cost: 28000 },
+    ] };
+}
+function nodeToyBoat(gs) { return { text: "Forty-two feet of fibreglass ego. The sunsets are better than anything you saw from a desk." + (gs.house === "canal" ? " The jetty at " + gs.houseName + " fits it perfectly." : ""), outcome: true, cost: 320000, annualAdd: 28000, choices: [{ label: "-> Worth it", next: "root" }], action: function(g) { return Object.assign({}, g, { bigToys: (g.bigToys||[]).concat(["Powerboat"]) }); } }; }
+function nodeToyHeli(gs) { return { text: "Sixty hours of lessons. The R44 is yours. The first solo flight over the Coastal region at sunrise — there are no words for it.", outcome: true, cost: 280000, annualAdd: 22000, choices: [{ label: "-> Worth every cent", next: "root" }], action: function(g) { return Object.assign({}, g, { bigToys: (g.bigToys||[]).concat(["Helicopter"]) }); } }; }
+function nodeToyMoto(gs) { return { text: "The Ducati arrives in a crate from Italy. Red. Obviously red. It is the most alive you have felt since the cheque cleared.", outcome: true, cost: 48000, annualAdd: 4500, choices: [{ label: "-> The road was made for this", next: "root" }], action: function(g) { return Object.assign({}, g, { bigToys: (g.bigToys||[]).concat(["Ducati"]) }); } }; }
+function nodeToyGuitars(gs) { return { text: "Twelve instruments. You play three of them well. The others you play badly but enthusiastically. The room smells like nitrocellulose and ambition.", outcome: true, cost: 95000, choices: [{ label: "-> Every one was necessary", next: "root" }], action: function(g) { return Object.assign({}, g, { bigToys: (g.bigToys||[]).concat(["Guitar Collection"]) }); } }; }
+function nodeToyGolf(gs) { return { text: "A TopDrive simulator suite. Full swing analysis, 30 courses. Your handicap improves three shots. Your stories about your handicap improve considerably more.", outcome: true, cost: 65000, choices: [{ label: "-> Eighteen holes before breakfast", next: "root" }], action: function(g) { return Object.assign({}, g, { bigToys: (g.bigToys||[]).concat(["Golf Simulator"]) }); } }; }
+function nodeToyTrack(gs) { return { text: "Queenslandia Raceway. Twelve track days. By session four you actually trust the car. You understand now why people do this until they're seventy.", outcome: true, cost: 28000, choices: [{ label: "-> Book next year already", next: "root" }], action: function(g) { return Object.assign({}, g, { bigToys: (g.bigToys||[]).concat(["Track Days"]) }); } }; }
+function nodeForTheLadies(gs) {
+  return { text: (gs.lady||[]).length > 0 ? "The finer things. You've developed a taste." : "The things worth having. The things worth giving. The things worth keeping.",
+    choices: [
+      { label: "💎 Private jeweller — bespoke fine jewellery — $95,000", next: "lady_jewels", cost: 95000 },
+      { label: "👗 Paris fashion week — front row, full wardrobe — $85,000", next: "lady_paris", cost: 85000 },
+      { label: "🛁 Spa and wellness retreat — 3 weeks — $38,000", next: "lady_spa", cost: 38000 },
+      { label: "🎨 Private art acquisition — emerging artists — $120,000", next: "lady_art", cost: 120000 },
+      { label: "🏰 Chateau wine tour — Southvale River — $62,000", next: "lady_wine", cost: 62000 },
+      { label: "🏠 Home renovation — no budget conversation — $180,000", next: "lady_reno", cost: 180000 },
+    ] };
+}
+function nodeLadyJewels(gs) { return { text: "A private jeweller in the Meridian Quarter. By appointment only. The pieces are made over six weeks. The finished work is worn exactly once to a function and then kept in a velvet box.", outcome: true, cost: 95000, choices: [{ label: "-> Worth every carat", next: "root" }], action: function(g) { return Object.assign({}, g, { lady: (g.lady||[]).concat(["Fine Jewellery"]) }); } }; }
+function nodeLadyParis(gs) { return { text: "Front row at three shows. A private styling consultation. You come home with an understanding of proportion and colour you cannot fully explain but will never lose.", outcome: true, cost: 85000, choices: [{ label: "-> Front row changes you", next: "root" }], action: function(g) { return Object.assign({}, g, { lady: (g.lady||[]).concat(["Paris Fashion Week"]) }); } }; }
+function nodeLadySpa(gs) { return { text: "Three weeks in the Southvale River Valley. Stone massage, organic everything. You cry twice. Both times feel correct. You return looking, according to three separate people, 'different somehow'.", outcome: true, cost: 38000, choices: [{ label: "-> Best money spent", next: "root" }], action: function(g) { return Object.assign({}, g, { lady: (g.lady||[]).concat(["Wellness Retreat"]) }); } }; }
+function nodeLadyArt(gs) { return { text: "Eight pieces from Ozmanian artists on the cusp. You don't buy them as investments — you buy them because they make you feel something." + (gs.house ? " They look extraordinary in " + gs.houseName + "." : "") + " One artist sends a handwritten thank-you note.", outcome: true, cost: 120000, choices: [{ label: "-> Art that means something", next: "root" }], action: function(g) { return Object.assign({}, g, { lady: (g.lady||[]).concat(["Art Collection"]) }); } }; }
+function nodeLadyWine(gs) { return { text: "Ten days in Southvale River. Small producers, private cellars, lunch that starts at noon and ends when someone checks their watch and it's four. You come home with an embarrassing amount of knowledge about tannins.", outcome: true, cost: 62000, choices: [{ label: "-> The education was worth it", next: "root" }], action: function(g) { return Object.assign({}, g, { lady: (g.lady||[]).concat(["Chateau Wine Tour"]) }); } }; }
+function nodeLadyReno(gs) { var h = gs.house ? "The " + gs.houseName + " gets" : "The house gets"; return { text: h + " the renovation it deserved. No budget conversation — that was the brief. The architect heard you. Six months later you walk through it and feel the satisfaction of a thing done properly.", outcome: true, cost: 180000, choices: [{ label: "-> Done properly or not at all", next: "root" }], action: function(g) { return Object.assign({}, g, { lady: (g.lady||[]).concat(["Home Renovation"]) }); } }; }
 
-function AppShell() {
-  var screenState = useState("reveal");
-  var screen = screenState[0], setScreen = screenState[1];
-  var playerNameState = useState("");
-  var playerName = playerNameState[0], setPlayerName = playerNameState[1];
-  var showLeaderboardState = useState(false);
-  var showLeaderboard = showLeaderboardState[0], setShowLeaderboard = showLeaderboardState[1];
-  var showScorecardState = useState(false);
-  var showScorecard = showScorecardState[0], setShowScorecard = showScorecardState[1];
-  var scorecardEntryState = useState(null);
-  var scorecardEntry = scorecardEntryState[0], setScorecardEntry = scorecardEntryState[1];
-  var scorecardRankState = useState(null);
-  var scorecardRank = scorecardRankState[0], setScorecardRank = scorecardRankState[1];
-  var boardState = useState(loadLeaderboard());
-  var board = boardState[0], setBoard = boardState[1];
-  var tombstoneState = useState(null); // null | { vidoDeath: bool }
-  var tombstoneData = tombstoneState[0], setTombstoneData = tombstoneState[1];
+// ── EXTEND NODES MAP ─────────────────────────────────────
+(function() {
+  var extraNodes = {
+    fun_stuff: nodeFunStuff,
+    big_boys_toys: nodeBigBoysToys,
+    toy_boat: nodeToyBoat, toy_heli: nodeToyHeli, toy_moto: nodeToyMoto,
+    toy_guitars: nodeToyGuitars, toy_golf: nodeToyGolf, toy_track: nodeToyTrack,
+    for_the_ladies: nodeForTheLadies,
+    lady_jewels: nodeLadyJewels, lady_paris: nodeLadyParis, lady_spa: nodeLadySpa,
+    lady_art: nodeLadyArt, lady_wine: nodeLadyWine, lady_reno: nodeLadyReno,
+    inv_political: nodeInvPolitical,
+  };
+  Object.assign(NODES, extraNodes);
+})();
 
-  // Game state mirrored here so we can build scorecard on end
-  var winAmountRef = useRef(0);
-  var passiveRef = useRef(0);
-  var weeksRef2 = useRef(0);
-  var gameStateRef = useRef(initialGS());
-
-  function handleRevealStart(amt, name) {
-    winAmountRef.current = amt;
-    setPlayerName(name);
-    setScreen("game");
-  }
-
-  function handleGameEnd(type, gameSnap) {
-    // type: "gameover" | "vido_death" | "win" | "suburban" | "mogul" | "tycoon" | "sailoff" | "billionaire"
-    var gs = gameSnap || gameStateRef.current;
-    var passive = passiveRef.current;
-    var win = winAmountRef.current;
-    var weeks = weeksRef2.current;
-
-    if (type === "vido_death" || (type === "gameover" && passive < 100)) {
-      setTombstoneData({ vidoDeath: type === "vido_death" });
-      setScreen("tombstone");
-      return;
-    }
-
-    // Build scorecard entry
-    var y = Math.floor(weeks/52), w = weeks%52;
-    var timeStr = (y > 0 ? y + "y " : "") + w + "w";
-    var score = calcScore(win, passive);
-    var strategy = getStrategyLabel(gs, passive, win);
-
-    var assets = [];
-    if (gs.carName) assets.push("🚗 " + gs.carName);
-    if (gs.houseName) assets.push("🏠 " + gs.houseName);
-    (gs.holidays||[]).forEach(function(h) { assets.push("✈️ " + h); });
-    (gs.investments||[]).slice(0,4).forEach(function(inv) { assets.push("📈 " + inv.type); });
-    if (gs.billionaireMode) assets.push("💼 Business Empire");
-    if ((gs.tycoonAssets||[]).length > 0) assets.push("🏗️ " + gs.tycoonAssets.length + " Tycoon Assets");
-
-    var now = new Date();
-    var dateStr = now.getFullYear() + "-" + String(now.getMonth()+1).padStart(2,"0") + "-" + String(now.getDate()).padStart(2,"0");
-
-    var entry = {
-      name: playerName || "Anonymous",
-      score: score,
-      winAmount: win,
-      passive: passive,
-      strategy: strategy,
-      timeStr: timeStr,
-      assets: assets,
-      date: dateStr,
-      ending: type
-    };
-
-    var newBoard = saveToLeaderboard(entry);
-    setBoard(newBoard);
-    var rank = newBoard.findIndex(function(e) {
-      return e.name === entry.name && e.date === entry.date && e.score === entry.score;
-    });
-    setScorecardEntry(entry);
-    setScorecardRank(rank >= 0 ? rank : null);
-    setShowScorecard(true);
-    setScreen("ended");
-  }
-
-  if (screen === "reveal") {
-    return React.createElement(React.Fragment, null,
-      React.createElement("style", null, CSS),
-      React.createElement(RevealScreen, {
-        onStart: handleRevealStart,
-        onLeaderboard: function() { setShowLeaderboard(true); }
-      }),
-      showLeaderboard && React.createElement(LeaderboardScreen, {
-        board: board,
-        onClose: function() { setShowLeaderboard(false); }
-      })
-    );
-  }
-
-  if (screen === "tombstone") {
-    return React.createElement(React.Fragment, null,
-      React.createElement("style", null, CSS),
-      React.createElement(TombstoneScreen, {
-        playerName: playerName,
-        winAmount: winAmountRef.current,
-        weeksElapsed: weeksRef2.current,
-        vidoDeath: tombstoneData && tombstoneData.vidoDeath,
-        onRestart: function() { setScreen("reveal"); setTombstoneData(null); }
-      })
-    );
-  }
-
-  // Main game — render original App but intercept ending callbacks
-  // We pass callbacks down via a context trick using a global ref
-  window.__eceg_onEnd = handleGameEnd;
-  window.__eceg_passiveRef = passiveRef;
-  window.__eceg_weeksRef = weeksRef2;
-  window.__eceg_gsRef = gameStateRef;
-  window.__eceg_winAmount = winAmountRef.current;
-  window.__eceg_playerName = playerName;
-
-  return React.createElement(React.Fragment, null,
-    React.createElement("style", null, CSS),
-    React.createElement(GameCore, {
-      winAmount: winAmountRef.current,
-      playerName: playerName,
-      onEnd: handleGameEnd,
-      onPassiveChange: function(p) { passiveRef.current = p; },
-      onWeeksChange: function(w) { weeksRef2.current = w; },
-      onGsChange: function(gs) { gameStateRef.current = gs; }
-    }),
-    showScorecard && scorecardEntry && React.createElement(ScorecardModal, {
-      entry: scorecardEntry,
-      board: board,
-      rank: scorecardRank,
-      onClose: function() { setShowScorecard(false); }
-    }),
-    showLeaderboard && React.createElement(LeaderboardScreen, {
-      board: board,
-      onClose: function() { setShowLeaderboard(false); }
-    })
+// ── PASSIVE INCOME GLOW OVERLAY ──────────────────────────
+function PassiveGlowOverlay(props) {
+  var amount = props.amount, message = props.message || "Passive income credited";
+  if (!amount) return null;
+  var formatted = "+$" + Math.round(amount).toLocaleString("en-AU");
+  return React.createElement("div", { style:{ position:"fixed", inset:0, zIndex:500, pointerEvents:"none", overflow:"hidden" } },
+    React.createElement("div", { style:{ position:"absolute", top:0, left:0, right:0, height:"180px", background:"linear-gradient(to bottom, #C9A84C55, transparent)", animation:"edgeGlow 2.8s ease forwards" } }),
+    React.createElement("div", { style:{ position:"absolute", bottom:0, left:0, right:0, height:"180px", background:"linear-gradient(to top, #C9A84C55, transparent)", animation:"edgeGlow 2.8s ease forwards" } }),
+    React.createElement("div", { style:{ position:"absolute", top:0, bottom:0, left:0, width:"120px", background:"linear-gradient(to right, #C9A84C44, transparent)", animation:"edgeGlow 2.8s ease forwards" } }),
+    React.createElement("div", { style:{ position:"absolute", top:0, bottom:0, right:0, width:"120px", background:"linear-gradient(to left, #C9A84C44, transparent)", animation:"edgeGlow 2.8s ease forwards" } }),
+    React.createElement("div", { style:{ position:"absolute", top:"50%", left:"50%", transform:"translate(-50%,-50%)", textAlign:"center" } },
+      React.createElement("div", { style:{ fontSize:"clamp(2rem,6vw,3.5rem)", fontWeight:900, color:"#C9A84C", fontFamily:"Georgia,serif", animation:"passiveSlide 2.8s ease forwards", textShadow:"0 0 40px #C9A84C, 0 0 80px #C9A84C88", lineHeight:1 } }, formatted),
+      React.createElement("div", { style:{ fontSize:"clamp(0.75rem,2vw,0.95rem)", color:"#f5f3ee", marginTop:"0.5rem", letterSpacing:"0.15em", textTransform:"uppercase", animation:"passiveGlow 2.8s ease forwards", textShadow:"0 0 20px #C9A84C88" } }, message)
+    )
   );
 }
 
+// ── VIDO COIN FLIP ────────────────────────────────────────
+function VidoCoinFlip(props) {
+  var playerName = props.playerName || "the Player";
+  var vidoDebt = props.vidoDebt || 0;
+  var onSurvive = props.onSurvive;
+  var onDeath = props.onDeath;
+  var phaseS = useState("intro"); var phase = phaseS[0], setPhase = phaseS[1];
+  var resultS = useState(null); var result = resultS[0], setResult = resultS[1];
+  var spinS = useState(false); var spinning = spinS[0], setSpinning = spinS[1];
 
-// ── GAME CORE — wraps original App logic ──────────────────
-// This is a thin wrapper that takes winAmount/playerName as props
-// and delegates to the original App internals
-function GameCore(props) {
-  var winAmountProp = props.winAmount;
-  var onEnd = props.onEnd;
-  var onPassiveChange = props.onPassiveChange;
-  var onWeeksChange = props.onWeeksChange;
-  var onGsChange = props.onGsChange;
+  function handleCall(call) {
+    if (phase !== "flip" || spinning) return;
+    setSpinning(true);
+    setTimeout(function() {
+      var outcome = Math.random() < 0.5 ? "heads" : "tails";
+      setResult(outcome);
+      setSpinning(false);
+      setPhase("result");
+    }, 2200);
+  }
 
-  // ── All state from original App ──
-  var screenState = useState("game");
-  var screen = screenState[0], setScreen = screenState[1];
-  var winState = useState(winAmountProp);
-  var winAmount = winState[0], setWinAmount = winState[1];
-  var cashState = useState(winAmountProp);
-  var cash = cashState[0], setCash = cashState[1];
-  var passiveState = useState(0);
-  var passiveIncome = passiveState[0], setPassiveIncome = passiveState[1];
-  var annualState = useState(0);
-  var annualCosts = annualState[0], setAnnualCosts = annualState[1];
-  var weeksState = useState(0);
-  var weeksElapsed = weeksState[0], setWeeksElapsed = weeksState[1];
-  var daysState = useState(0);
-  var daysElapsed = daysState[0], setDaysElapsed = daysState[1];
-  var nodeState = useState("root");
-  var nodeKey = nodeState[0], setNodeKey = nodeState[1];
-  var eventState = useState(null);
-  var pendingEvent = eventState[0], setPendingEvent = eventState[1];
-  var outcomeState = useState(null);
-  var pendingOutcome = outcomeState[0], setPendingOutcome = outcomeState[1];
-  var gsState = useState(function() { return Object.assign(initialGS(), { luxuryTarget: calcTarget(winAmountProp) }); });
-  var gameState = gsState[0], setGameState = gsState[1];
-  var notifState = useState(null);
-  var pendingNotif = notifState[0], setPendingNotif = notifState[1];
-  var notifResultState = useState(null);
-  var notifResult = notifResultState[0], setNotifResult = notifResultState[1];
-  var bjState = useState(false);
-  var showBlackjack = bjState[0], setShowBlackjack = bjState[1];
-  var debtState = useState(0);
-  var debt = debtState[0], setDebt = debtState[1];
-  var historyState = useState([]);
-  var nodeHistory = historyState[0], setNodeHistory = historyState[1];
-  var vidoDebtState = useState(0);
-  var vidoDebt = vidoDebtState[0], setVidoDebt = vidoDebtState[1];
-  var vidoWeeksState = useState(0);
-  var vidoWeeks = vidoWeeksState[0], setVidoWeeks = vidoWeeksState[1];
-  var showFinanceState = useState(null);
-  var showFinance = showFinanceState[0], setShowFinance = showFinanceState[1];
-  var tierState = useState("none");
-  var tierScreen = tierState[0], setTierScreen = tierState[1];
-  var sailTierState = useState("suburban");
-  var sailTier = sailTierState[0], setSailTier = sailTierState[1];
-  var billFinaleState = useState(false);
-  var showBillFinale = billFinaleState[0], setShowBillFinale = billFinaleState[1];
-  var passiveGlowState = useState(null); // { amount, message } | null
-  var passiveGlow = passiveGlowState[0], setPassiveGlow = passiveGlowState[1];
-  var lastGlowWeek = useRef(-1); // prevent firing twice same week
-  var showTycoonState = useState(true);
-  var showTycoon = showTycoonState[0], setShowTycoon = showTycoonState[1];
+  if (phase === "intro") {
+    return React.createElement("div", { style:{ position:"fixed", inset:0, zIndex:600, background:"radial-gradient(ellipse at center, #1a0505 0%, #000 100%)", display:"flex", alignItems:"center", justifyContent:"center", padding:"2rem", fontFamily:"Georgia,serif" } },
+      React.createElement("div", { style:{ maxWidth:"480px", textAlign:"center", animation:"fadeUp 0.6s ease forwards" } },
+        React.createElement("div", { style:{ fontSize:"3rem", marginBottom:"1rem" } }, "\uD83D\uDD2A"),
+        React.createElement("div", { style:{ fontSize:"0.65rem", letterSpacing:"0.3em", color:"#C0392B", textTransform:"uppercase", marginBottom:"1.5rem" } }, "Week 26 — Vido Collects"),
+        React.createElement("div", { style:{ background:"#0d0000", border:"1px solid #C0392B33", borderRadius:"8px", padding:"1.5rem", marginBottom:"2rem", textAlign:"left" } },
+          React.createElement("div", { style:{ fontSize:"0.6rem", color:"#C0392B", letterSpacing:"0.2em", textTransform:"uppercase", marginBottom:"0.75rem" } }, "Vido — private room, unmarked venue"),
+          React.createElement("p", { style:{ color:"#ccc", fontSize:"0.92rem", lineHeight:1.9, fontStyle:"italic", margin:0 } },
+            '"Six months ago you borrowed ' + fmtFull(Math.round(vidoDebt/2)) + ' from me. The arrangement was clear. Today that is ' + fmtFull(vidoDebt) + '."',
+            React.createElement("br"), React.createElement("br"),
+            '"I am in a good mood today. Someone dealt with a problem I have had for a long time. So I am going to give you a chance you do not deserve."',
+            React.createElement("br"), React.createElement("br"),
+            '"One flip. Heads — six more months, same terms. Tails..." ',
+            React.createElement("span", { style:{ color:"#C0392B" } }, '"...the harbour is deep this time of year."')
+          )
+        ),
+        React.createElement("button", { onClick: function() { setPhase("flip"); }, style:{ background:"linear-gradient(135deg,#C0392B,#7a1a1a)", border:"none", borderRadius:"6px", padding:"1rem 3rem", color:"#fff", fontSize:"1rem", fontWeight:"bold", letterSpacing:"0.1em", textTransform:"uppercase", cursor:"pointer" } }, "Face the coin")
+      )
+    );
+  }
+
+  if (phase === "flip") {
+    return React.createElement("div", { style:{ position:"fixed", inset:0, zIndex:600, background:"radial-gradient(ellipse at center, #0d0000 0%, #000 100%)", display:"flex", alignItems:"center", justifyContent:"center", padding:"2rem", fontFamily:"Georgia,serif" } },
+      React.createElement("div", { style:{ maxWidth:"400px", textAlign:"center" } },
+        React.createElement("div", { style:{ fontSize:"0.65rem", color:"#666", letterSpacing:"0.25em", textTransform:"uppercase", marginBottom:"2rem" } }, "Call it"),
+        React.createElement("div", { style:{ width:"120px", height:"120px", margin:"0 auto 2.5rem", borderRadius:"50%", background:"linear-gradient(135deg, #C9A84C, #f0d060)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:"2.5rem", boxShadow:"0 0 40px #C9A84C44", animation: spinning ? "coinSpin 0.25s linear infinite" : "none" } }, spinning ? "" : "\uD83E\uDE99"),
+        !spinning && React.createElement("div", { style:{ display:"flex", gap:"1rem", justifyContent:"center", marginBottom:"1.5rem" } },
+          React.createElement("button", { onClick: function() { handleCall("heads"); }, style:{ flex:1, background:"linear-gradient(135deg,#1a3a1a,#0d2010)", border:"2px solid #27ae6066", borderRadius:"8px", padding:"1rem", color:"#27ae60", fontSize:"1rem", fontWeight:"bold", cursor:"pointer" } }, "HEADS"),
+          React.createElement("button", { onClick: function() { handleCall("tails"); }, style:{ flex:1, background:"linear-gradient(135deg,#3a1a1a,#200d0d)", border:"2px solid #C0392B66", borderRadius:"8px", padding:"1rem", color:"#C0392B", fontSize:"1rem", fontWeight:"bold", cursor:"pointer" } }, "TAILS")
+        ),
+        spinning && React.createElement("div", { style:{ color:"#666", fontSize:"0.85rem", letterSpacing:"0.15em", textTransform:"uppercase", animation:"warn 0.8s ease-in-out infinite" } }, "The coin is in the air..."),
+        React.createElement("div", { style:{ fontSize:"0.72rem", color:"#333", marginTop:"1.5rem", lineHeight:1.7 } }, "Vido watches from across the table. He has not touched his drink.")
+      )
+    );
+  }
+
+  // Result screen
+  var survived = result === "heads";
+  return React.createElement("div", { style:{ position:"fixed", inset:0, zIndex:600, background: survived ? "radial-gradient(ellipse at center, #0d1a0d 0%, #000 100%)" : "radial-gradient(ellipse at center, #1a0000 0%, #000 100%)", display:"flex", alignItems:"center", justifyContent:"center", padding:"2rem", fontFamily:"Georgia,serif" } },
+    React.createElement("div", { style:{ maxWidth:"480px", textAlign:"center", animation:"fadeUp 0.5s ease forwards" } },
+      React.createElement("div", { style:{ fontSize:"3rem", marginBottom:"0.75rem", filter: survived ? "drop-shadow(0 0 20px #27ae60)" : "drop-shadow(0 0 20px #C0392B)" } }, survived ? "\uD83E\uDE99" : "\uD83D\uDD34"),
+      React.createElement("div", { style:{ fontSize:"2.5rem", fontWeight:900, color: survived ? "#27ae60" : "#C0392B", letterSpacing:"0.08em", marginBottom:"1rem", animation:"gPulse 2s ease-in-out infinite" } }, survived ? "HEADS" : "TAILS"),
+      React.createElement("div", { style:{ background: survived ? "#0a1a0a" : "#0d0000", border:"1px solid " + (survived ? "#27ae6033" : "#C0392B33"), borderRadius:"8px", padding:"1.25rem", marginBottom:"1.5rem", textAlign:"left" } },
+        React.createElement("div", { style:{ fontSize:"0.6rem", color: survived ? "#27ae60" : "#C0392B", letterSpacing:"0.2em", textTransform:"uppercase", marginBottom:"0.6rem" } }, "Vido"),
+        survived
+          ? React.createElement("p", { style:{ color:"#ccc", fontSize:"0.9rem", lineHeight:1.9, fontStyle:"italic", margin:0 } },
+              '"Six months. ' + fmtFull(vidoDebt) + ' same terms. Do not come back without it."',
+              React.createElement("br"), React.createElement("br"),
+              '"And ' + playerName + '? Do not thank me. It was the coin."'
+            )
+          : React.createElement("p", { style:{ color:"#ccc", fontSize:"0.9rem", lineHeight:1.9, fontStyle:"italic", margin:0 } }, '"Nothing personal."')
+      ),
+      survived
+        ? React.createElement("div", null,
+            React.createElement("div", { style:{ color:"#888", fontSize:"0.8rem", lineHeight:1.7, marginBottom:"1.5rem" } },
+              "Fresh 26-week term. " + fmtFull(vidoDebt) + " outstanding.", React.createElement("br"), "The clock is already running."
+            ),
+            React.createElement("button", { onClick: onSurvive, style:{ background:"linear-gradient(135deg,#27ae60,#1a7a40)", border:"none", borderRadius:"6px", padding:"0.9rem 2.5rem", color:"#fff", fontSize:"0.95rem", fontWeight:"bold", letterSpacing:"0.1em", textTransform:"uppercase", cursor:"pointer" } }, "Keep going - 6 months to find the money")
+          )
+        : React.createElement("div", null,
+            React.createElement("div", { style:{ background:"linear-gradient(180deg,#2a2a2a,#1a1a1a)", border:"2px solid #444", borderRadius:"50% 50% 6px 6px / 30% 30% 6px 6px", padding:"1.5rem 1.25rem 1.25rem", marginBottom:"1.25rem", display:"inline-block", boxShadow:"inset 0 -4px 12px rgba(0,0,0,0.5)" } },
+              React.createElement("div", { style:{ fontSize:"1.5rem", marginBottom:"0.4rem" } }, "+"),
+              React.createElement("div", { style:{ fontFamily:"Georgia,serif", fontSize:"1rem", fontWeight:"bold", color:"#ccc", marginBottom:"0.3rem" } }, playerName),
+              React.createElement("div", { style:{ fontFamily:"Georgia,serif", fontSize:"0.72rem", color:"#888", lineHeight:1.8, fontStyle:"italic", borderTop:"1px solid #333", paddingTop:"0.6rem", marginTop:"0.3rem" } },
+                "They borrowed from Vido the Butcher.",
+                React.createElement("br"), "The coin said tails.",
+                React.createElement("br"),
+                React.createElement("span", { style:{ color:"#C0392B" } }, "They ended up sleeping with the fishes.")
+              )
+            ),
+            React.createElement("button", { onClick: onDeath, style:{ background:"#111", border:"1px solid #333", borderRadius:"6px", padding:"0.85rem 2rem", color:"#555", fontSize:"0.85rem", fontWeight:"bold", letterSpacing:"0.1em", textTransform:"uppercase", cursor:"pointer" } }, "Play again")
+          )
+    )
+  );
+}
+
+// ── APP ───────────────────────────────────────────────────
+function App() {
+  var screenS = useState("reveal"); var screen = screenS[0], setScreen = screenS[1];
+  var winS = useState(0); var winAmount = winS[0], setWinAmount = winS[1];
+  var cashS = useState(0); var cash = cashS[0], setCash = cashS[1];
+  var passiveS = useState(0); var passiveIncome = passiveS[0], setPassiveIncome = passiveS[1];
+  var annualS = useState(0); var annualCosts = annualS[0], setAnnualCosts = annualS[1];
+  var weeksS = useState(0); var weeksElapsed = weeksS[0], setWeeksElapsed = weeksS[1];
+  var daysS = useState(0); var daysElapsed = daysS[0], setDaysElapsed = daysS[1];
+  var nodeS = useState("root"); var nodeKey = nodeS[0], setNodeKey = nodeS[1];
+  var eventS = useState(null); var pendingEvent = eventS[0], setPendingEvent = eventS[1];
+  var outcomeS = useState(null); var pendingOutcome = outcomeS[0], setPendingOutcome = outcomeS[1];
+  var gsS = useState(function() { return Object.assign(initialGS(), { bigToys:[], lady:[] }); });
+  var gameState = gsS[0], setGameState = gsS[1];
+  var notifS = useState(null); var pendingNotif = notifS[0], setPendingNotif = notifS[1];
+  var notifResS = useState(null); var notifResult = notifResS[0], setNotifResult = notifResS[1];
+  var bjS = useState(false); var showBlackjack = bjS[0], setShowBlackjack = bjS[1];
+  var debtS = useState(0); var debt = debtS[0], setDebt = debtS[1];
+  var histS = useState([]); var nodeHistory = histS[0], setNodeHistory = histS[1];
+  var vidoS = useState(0); var vidoDebt = vidoS[0], setVidoDebt = vidoS[1];
+  var vidoWS = useState(0); var vidoWeeks = vidoWS[0], setVidoWeeks = vidoWS[1];
+  var finS = useState(null); var showFinance = finS[0], setShowFinance = finS[1];
+  var tierS = useState("none"); var tierScreen = tierS[0], setTierScreen = tierS[1];
+  var sailS = useState("suburban"); var sailTier = sailS[0], setSailTier = sailS[1];
+  var billFS = useState(false); var showBillFinale = billFS[0], setShowBillFinale = billFS[1];
+  var tycoonS = useState(true); var showTycoon = tycoonS[0], setShowTycoon = tycoonS[1];
+  var glowS = useState(null); var passiveGlow = glowS[0], setPassiveGlow = glowS[1];
+  var vidoCoinS = useState(false); var showVidoCoin = vidoCoinS[0], setShowVidoCoin = vidoCoinS[1];
+  var vidoCoinDebtS = useState(0); var vidoCoinDebt = vidoCoinDebtS[0], setVidoCoinDebt = vidoCoinDebtS[1];
+  var playerNameS = useState(""); var playerName = playerNameS[0], setPlayerName = playerNameS[1];
+  var showLBoardS = useState(false); var showLeaderboard = showLBoardS[0], setShowLeaderboard = showLBoardS[1];
+  var showSCardS = useState(false); var showScorecard = showSCardS[0], setShowScorecard = showSCardS[1];
+  var scorecardEntryS = useState(null); var scorecardEntry = scorecardEntryS[0], setScorecardEntry = scorecardEntryS[1];
+  var scorecardRankS = useState(null); var scorecardRank = scorecardRankS[0], setScorecardRank = scorecardRankS[1];
+  var boardS = useState(loadLeaderboard()); var board = boardS[0], setBoard = boardS[1];
   var shownNotifsRef = useRef([]);
   var lastNotifWeek = useRef(0);
   var weeksRef = useRef(0);
   var lastEvt = useRef(0);
-  var startT = useRef(Date.now());
-  var cashRef = useRef(winAmountProp);
+  var startT = useRef(null);
+  var cashRef = useRef(0);
   var debtRef = useRef(0);
   var vidoDebtRef = useRef(0);
   var annRef = useRef(0);
   var passRef = useRef(0);
   var gsRef = useRef(gameState);
+  var lastGlowWeek = useRef(-1);
 
-  var totalAssets = cash + (gameState.tycoonAssets || []).reduce(function(sum, a) { return sum + (a.assetValue || 0); }, 0)
-    + gameState.investments.reduce(function(sum, inv) { return sum + (inv.amount || 0); }, 0);
+  var totalAssets = cash
+    + (gameState.tycoonAssets||[]).reduce(function(s,a){return s+(a.assetValue||0);},0)
+    + gameState.investments.reduce(function(s,inv){return s+(inv.amount||0);},0);
 
-  useEffect(function() { cashRef.current = cash; }, [cash]);
-  useEffect(function() { debtRef.current = debt; }, [debt]);
-  useEffect(function() { vidoDebtRef.current = vidoDebt; }, [vidoDebt]);
-  useEffect(function() { annRef.current = annualCosts; }, [annualCosts]);
+  useEffect(function(){cashRef.current=cash;},[cash]);
+  useEffect(function(){debtRef.current=debt;},[debt]);
+  useEffect(function(){vidoDebtRef.current=vidoDebt;},[vidoDebt]);
+  useEffect(function(){annRef.current=annualCosts;},[annualCosts]);
+  useEffect(function(){passRef.current=passiveIncome;},[passiveIncome]);
+  useEffect(function(){gsRef.current=gameState;},[gameState]);
+
+  // ── PASSIVE INCOME TRIGGERED NOTIFICATIONS ──
   useEffect(function() {
-    passRef.current = passiveIncome;
-    if (onPassiveChange) onPassiveChange(passiveIncome);
-  }, [passiveIncome]);
+    if (passiveIncome < 100 || screen !== "game") return;
+    var pc = gameState.paulsonContact||0;
+    if (passiveIncome >= 8000 && pc === 0 && !gameState.billionaireMode && shownNotifsRef.current.indexOf("paulson_initial") < 0) {
+      shownNotifsRef.current = shownNotifsRef.current.concat(["paulson_initial"]);
+      setTimeout(function() {
+        setPendingNotif({ id:"paulson_initial", type:"call", tier:"legit", from:"Richard Paulson", preview:"Southrock Capital — your portfolio caught our attention...",
+          body:'G\'day, Richard Paulson from Southrock Capital. We monitor high-net-worth windfall events. You have built $' + Math.round(passiveIncome).toLocaleString() + ' a month in passive income. That is rare. I would like to have a coffee. No pitch. Just a conversation.',
+          acceptLabel:"Sure — coffee works", rejectLabel:"Not interested", paulsonContact:1,
+          onAccept:{cost:0,passiveAdd:0,msg:"Richard is punctual and direct. He talks for twenty minutes about the difference between earning money and deploying capital. He says he'll be in touch."} });
+      }, 2000);
+      return;
+    }
+    if (pc >= 1 && passiveIncome >= 8000 && shownNotifsRef.current.indexOf("paulson_2") < 0) {
+      shownNotifsRef.current = shownNotifsRef.current.concat(["paulson_2"]);
+      var p2 = NOTIFICATIONS.filter(function(n){return n.id==="paulson_2";})[0];
+      if (p2) setTimeout(function(){setPendingNotif(p2);},3000);
+      return;
+    }
+    if (pc >= 2 && passiveIncome >= 20000 && shownNotifsRef.current.indexOf("paulson_3") < 0) {
+      shownNotifsRef.current = shownNotifsRef.current.concat(["paulson_3"]);
+      var p3 = NOTIFICATIONS.filter(function(n){return n.id==="paulson_3";})[0];
+      if (p3) setTimeout(function(){setPendingNotif(p3);},3000);
+      return;
+    }
+    if (pc >= 3 && passiveIncome >= 50000 && shownNotifsRef.current.indexOf("paulson_4") < 0) {
+      shownNotifsRef.current = shownNotifsRef.current.concat(["paulson_4"]);
+      var p4 = NOTIFICATIONS.filter(function(n){return n.id==="paulson_4";})[0];
+      if (p4) setTimeout(function(){setPendingNotif(p4);},3000);
+    }
+  }, [passiveIncome, gameState.paulsonContact, gameState.billionaireMode, screen]);
+
+  // ── RESTRAINT TRIGGERED ──
   useEffect(function() {
-    gsRef.current = gameState;
-    if (onGsChange) onGsChange(gameState);
-  }, [gameState]);
+    if ((gameState.restrainedChoices||0) >= 2 && !gameState.billionaireMode && shownNotifsRef.current.indexOf("gates_trigger") < 0) {
+      shownNotifsRef.current = shownNotifsRef.current.concat(["gates_trigger"]);
+      var gn = NOTIFICATIONS.filter(function(n){return n.gatesPath;})[0];
+      if (gn) setTimeout(function(){setPendingNotif(gn);},2000);
+    }
+  }, [gameState.restrainedChoices, gameState.billionaireMode]);
+
+  // ── POLITICO TRIGGERED ──
   useEffect(function() {
-    if (onWeeksChange) onWeeksChange(weeksElapsed);
-  }, [weeksElapsed]);
+    if (!gameState.hasMadePoliticalDonation) return;
+    if ((gameState.politicoPath||0) > 0) return;
+    if (shownNotifsRef.current.indexOf("politico_approach") >= 0) return;
+    shownNotifsRef.current = shownNotifsRef.current.concat(["politico_approach"]);
+    setTimeout(function() {
+      setPendingNotif({ id:"politico_approach", type:"call", tier:"borderline",
+        from:"Private number", preview:"A mutual friend suggested I reach out...",
+        body:'Good evening. You do not know me but we have mutual friends. I understand you attended the dinner last week. I would like to have dinner. Just a conversation. The Wharf Restaurant, Friday. My name is Murray Cresswell.',
+        acceptLabel:"Accept — Friday at The Wharf", rejectLabel:"Politely decline",
+        politicoTrigger:true,
+        onAccept:{cost:0,passiveAdd:0,msg:"The dinner is excellent. Murray Cresswell MP is charming and very clear about what he wants. You drive home thinking about it for three days. Then you go back."} });
+    }, 4000);
+  }, [gameState.hasMadePoliticalDonation]);
+
+  // ── WIN CONDITION CHECKS ──
+  useEffect(function() {
+    if (screen !== "game") return;
+    if (tierScreen === "tycoon_chase") {
+      if (passiveIncome >= MOGUL_PASSIVE_TARGET) { setTierScreen("mogul"); return; }
+      if (totalAssets >= TYCOON_ASSET_TARGET) { setTierScreen("tycoon"); return; }
+    }
+    if (tierScreen === "none" && passiveIncome > 0) {
+      if (passiveIncome >= calcTarget(winAmount)) { setTimeout(function(){setTierScreen("suburban");},600); }
+    }
+  }, [passiveIncome, totalAssets, tierScreen, winAmount, screen]);
 
   // ── CLOCK ──
   useEffect(function() {
+    if (screen !== "game") return;
     var id = setInterval(function() {
       var nd = Math.floor((Date.now() - startT.current) / DAY_MS);
       var nw = Math.floor(nd / 7);
@@ -3116,22 +3033,13 @@ function GameCore(props) {
       weeksRef.current = nw;
       setWeeksElapsed(nw);
       var weeklyPassive = passRef.current / 4.33;
-      setCash(function(c) { return c + weeklyPassive; });
-      // Fire glow every 4 weeks when there's meaningful passive income
+      setCash(function(c){return c + weeklyPassive;});
+      // Passive glow every 4 weeks
       if (passRef.current >= 1000 && nw % 4 === 0 && lastGlowWeek.current !== nw) {
         lastGlowWeek.current = nw;
-        var monthlyAmount = passRef.current;
-        var glowMessages = [
-          "Monthly passive income landed",
-          "Your money is working while you sleep",
-          "Passive income credited to your balance",
-          "The portfolio keeps delivering",
-          "Another month. Another payday.",
-          "While you were out — your money wasn't",
-        ];
-        var glowMsg = glowMessages[Math.floor(nw / 4) % glowMessages.length];
-        setPassiveGlow({ amount: monthlyAmount, message: glowMsg });
-        setTimeout(function() { setPassiveGlow(null); }, 2900);
+        var msgs = ["Monthly passive income landed","Your money is working while you sleep","The portfolio keeps delivering","Another month. Another payday.","While you were out — your money was not","Passive income credited to your balance"];
+        setPassiveGlow({ amount: passRef.current, message: msgs[Math.floor(nw/4) % msgs.length] });
+        setTimeout(function(){setPassiveGlow(null);}, 2900);
       }
       var exp = annRef.current / 52;
       if (debtRef.current > 0) exp += debtRef.current * CREDIT_RATE / 52;
@@ -3141,452 +3049,273 @@ function GameCore(props) {
           var newVw = vw + 1;
           if (newVw >= 26) {
             var penalty = vidoDebtRef.current * 2;
-            setCash(function(c) { return Math.max(0, c - penalty); });
-            setVidoDebt(0);
-            vidoDebtRef.current = 0;
-            // Check if this kills the player
-            if (cashRef.current - penalty <= 0 && passRef.current < 500) {
-              if (onEnd) onEnd("vido_death", gsRef.current);
-              return 0;
+            if (cashRef.current >= penalty) {
+              setCash(function(c){return Math.max(0,c-penalty);});
+              setVidoDebt(0); vidoDebtRef.current = 0;
+              setPendingEvent({ text: "🔪 Vido's associate arrives. " + fmtFull(penalty) + " collected. He counts it twice, nods once, and leaves without a word.", type:"bad", cost:0 });
+            } else {
+              setVidoCoinDebt(penalty);
+              setShowVidoCoin(true);
+              setVidoDebt(0); vidoDebtRef.current = 0;
             }
-            setPendingEvent({ text: "🔪 Vido's associate arrives. Six months is up. The loan was " + fmtFull(vidoDebtRef.current || penalty/2) + ". With interest and the agreed penalty rate, that's " + fmtFull(penalty) + " due today. It is not a negotiation. He waits while you do the transfer.", type:"bad", cost:0 });
+            return 0;
           }
-          return newVw >= 26 ? 0 : newVw;
+          return newVw;
         });
       }
       var nc = cashRef.current - exp;
-      if (nc <= 0 && passRef.current < 500) {
-        setCash(0);
-        if (onEnd) onEnd("gameover", gsRef.current);
-        return;
-      }
+      if (nc <= 0 && passRef.current < 500) { setCash(0); setScreen("gameover"); return; }
       setCash(Math.max(0, nc));
       if (nw >= 2 && nw - lastEvt.current >= 4 && Math.random() < 0.4) {
         lastEvt.current = nw;
         var pool = makeEvents(gsRef.current);
-        setPendingEvent(pool[Math.floor(Math.random() * pool.length)]);
+        setPendingEvent(pool[Math.floor(Math.random()*pool.length)]);
         return;
       }
-      // ── WEEKLY NOTIFICATION WINDOW — reduced to 3-week gap, 65% probability ──
       if (nw >= 2 && nw - lastNotifWeek.current >= 3 && Math.random() < 0.65) {
         lastNotifWeek.current = nw;
         var gs = gsRef.current;
-        var streak = gs.gamblingStreak || 0;
-
-        // Gambling notifications
-        var gamblingChance = streak > 0 ? 0.55 : 0.15;
-        if (Math.random() < gamblingChance) {
-          var gn = getGamblingNotif(gs);
-          if (gn) { setPendingNotif(gn); return; }
+        var streak = gs.gamblingStreak||0;
+        if (Math.random() < (streak > 0 ? 0.55 : 0.15)) {
+          var gn2 = getGamblingNotif(gs);
+          if (gn2) { setPendingNotif(gn2); return; }
         }
-        // Politico approach after donation
-        // politico_approach now handled by dedicated useEffect
-        // Politico random events
         if ((gs.politicoPath||0) >= 1 && (gs.politicoPath||0) < 99 && Math.random() < 0.18) {
-          var pevt = POLITICO_EVENTS[Math.floor(Math.random() * POLITICO_EVENTS.length)](gs);
-          setPendingEvent(pevt);
-          return;
+          var pe = POLITICO_EVENTS[Math.floor(Math.random()*POLITICO_EVENTS.length)](gs);
+          setPendingEvent(pe); return;
         }
-        // General notification pool
         var found = getNotification(gs, shownNotifsRef.current);
-        if (found) {
-          shownNotifsRef.current = shownNotifsRef.current.concat([found.id]);
-          setPendingNotif(found.notif);
-        }
+        if (found) { shownNotifsRef.current = shownNotifsRef.current.concat([found.id]); setPendingNotif(found.notif); }
       }
     }, 1000);
-    return function() { clearInterval(id); };
+    return function(){clearInterval(id);};
+  }, [screen]);
+
+  function buildScorecard(ending) {
+    var gs = gsRef.current;
+    var score = calcScore(winAmount, passiveIncome);
+    var strategy = getStrategyLabel(gs, passiveIncome, winAmount);
+    var y = Math.floor(weeksRef.current/52), w = weeksRef.current%52;
+    var timeStr = (y>0?y+"y ":"")+w+"w";
+    var assets = [];
+    if (gs.carName) assets.push("🚗 "+gs.carName);
+    if (gs.houseName) assets.push("🏠 "+gs.houseName);
+    (gs.holidays||[]).forEach(function(h){assets.push("✈️ "+h);});
+    (gs.bigToys||[]).forEach(function(t){assets.push("🏎️ "+t);});
+    (gs.investments||[]).slice(0,4).forEach(function(inv){assets.push("📈 "+inv.type);});
+    var now = new Date();
+    var dateStr = now.getFullYear()+"-"+String(now.getMonth()+1).padStart(2,"0")+"-"+String(now.getDate()).padStart(2,"0");
+    var entry = { name:playerName||"Anonymous", score:score, winAmount:winAmount, passive:passiveIncome, strategy:strategy, timeStr:timeStr, assets:assets, date:dateStr, ending:ending };
+    var newBoard = saveToLeaderboard(entry);
+    setBoard(newBoard);
+    var rank = newBoard.findIndex(function(e){return e.name===entry.name&&e.date===entry.date&&e.score===entry.score;});
+    setScorecardEntry(entry);
+    setScorecardRank(rank>=0?rank:null);
+    setShowScorecard(true);
+  }
+
+  function handleGameEnd(ending) {
+    if (ending === "vido_death" || ending === "gameover_broke") {
+      setScreen("tombstone");
+    } else {
+      buildScorecard(ending);
+      setScreen("ended");
+    }
+  }
+
+  var handleHome = useCallback(function() {
+    if (gsRef.current && gsRef.current.tycoonMode) { setShowTycoon(true); setPendingOutcome(null); return; }
+    setNodeKey("root"); setNodeHistory([]); setPendingOutcome(null); setShowTycoon(false);
   }, []);
 
-
-  // ── PASSIVE INCOME TRIGGERED NOTIFICATIONS ──
-  // Fires on state change — no stale ref lag
-  useEffect(function() {
-    if (passiveIncome < 100) return;
-
-    // Paulson initial contact
-    if (passiveIncome >= 8000 && (gameState.paulsonContact||0) === 0 && !gameState.billionaireMode
-        && shownNotifsRef.current.indexOf("paulson_initial") < 0) {
-      shownNotifsRef.current = shownNotifsRef.current.concat(["paulson_initial"]);
-      setTimeout(function() {
-        setPendingNotif({
-          id: "paulson_initial", type:"call", tier:"legit",
-          from:"Richard Paulson", preview:"Southrock Capital — your portfolio caught our attention...",
-          body:"G'day, Richard Paulson from Southrock Capital. We monitor high-net-worth windfall events — most people are broke inside two years. You're not. You've built $" + Math.round(passiveIncome).toLocaleString() + " a month in passive income. That's unusual. I'd like to have a coffee. No pitch. Just a conversation.",
-          acceptLabel:"Sure — coffee works", rejectLabel:"Not interested",
-          paulsonContact: 1,
-          onAccept: { cost:0, passiveAdd:0, msg:"Richard is punctual, direct, and doesn't waste words. He orders a long black and talks for twenty minutes about the difference between earning money and deploying capital. By the time you leave you understand something important. He says he'll be in touch." }
-        });
-      }, 2000);
-      return;
-    }
-
-    // Paulson structure call
-    var pc = gameState.paulsonContact || 0;
-    if (pc >= 1 && passiveIncome >= 8000 && shownNotifsRef.current.indexOf("paulson_2") < 0) {
-      shownNotifsRef.current = shownNotifsRef.current.concat(["paulson_2"]);
-      var p2 = NOTIFICATIONS.filter(function(n){ return n.id === "paulson_2"; })[0];
-      if (p2) setTimeout(function(){ setPendingNotif(p2); }, 3000);
-      return;
-    }
-    if (pc >= 2 && passiveIncome >= 20000 && shownNotifsRef.current.indexOf("paulson_3") < 0) {
-      shownNotifsRef.current = shownNotifsRef.current.concat(["paulson_3"]);
-      var p3 = NOTIFICATIONS.filter(function(n){ return n.id === "paulson_3"; })[0];
-      if (p3) setTimeout(function(){ setPendingNotif(p3); }, 3000);
-      return;
-    }
-    if (pc >= 3 && passiveIncome >= 50000 && shownNotifsRef.current.indexOf("paulson_4") < 0) {
-      shownNotifsRef.current = shownNotifsRef.current.concat(["paulson_4"]);
-      var p4 = NOTIFICATIONS.filter(function(n){ return n.id === "paulson_4"; })[0];
-      if (p4) setTimeout(function(){ setPendingNotif(p4); }, 3000);
-    }
-
-    // Gates path — restraint trigger
-    if ((gameState.restrainedChoices||0) >= 2 && !gameState.billionaireMode
-        && shownNotifsRef.current.indexOf("gates_trigger") < 0) {
-      shownNotifsRef.current = shownNotifsRef.current.concat(["gates_trigger"]);
-      var gn = NOTIFICATIONS.filter(function(n){ return n.gatesPath; })[0];
-      if (gn) setTimeout(function(){ setPendingNotif(gn); }, 2500);
-    }
-  }, [passiveIncome, gameState.paulsonContact, gameState.restrainedChoices, gameState.billionaireMode]);
-
-
-  // ── RESTRAINT TRIGGERED NOTIFICATIONS ──
-  useEffect(function() {
-    if ((gameState.restrainedChoices||0) >= 2 && !gameState.billionaireMode
-        && shownNotifsRef.current.indexOf("gates_trigger") < 0) {
-      shownNotifsRef.current = shownNotifsRef.current.concat(["gates_trigger"]);
-      var gn = NOTIFICATIONS.filter(function(n){ return n.gatesPath; })[0];
-      if (gn) setTimeout(function(){ setPendingNotif(gn); }, 2000);
-    }
-  }, [gameState.restrainedChoices, gameState.billionaireMode]);
-
-  // ── POLITICAL DONATION TRIGGERED NOTIFICATION ──
-  useEffect(function() {
-    if (!gameState.hasMadePoliticalDonation) return;
-    if ((gameState.politicoPath||0) > 0) return; // already in the arc
-    if (shownNotifsRef.current.indexOf("politico_approach") >= 0) return;
-    shownNotifsRef.current = shownNotifsRef.current.concat(["politico_approach"]);
-    // Murray calls within 4 seconds of the donation being made
-    setTimeout(function() {
-      setPendingNotif({
-        id: "politico_approach", type:"call", tier:"borderline",
-        from:"Private number", preview:"A mutual friend suggested I reach out...",
-        body:"Good evening. You don't know me — but we have mutual friends. I understand you attended the dinner last week and that you've been making some thoughtful investments in the region. I'd like to have dinner. Just a conversation. I think there are opportunities that would interest you. The Wharf Restaurant, Friday. My office will make the reservation. My name is Murray Cresswell.",
-        acceptLabel:"Accept — Friday at The Wharf", rejectLabel:"Politely decline",
-        politicoTrigger: true,
-        onAccept: { cost:0, passiveAdd:0, msg:"The dinner is excellent. Murray Cresswell MP is charming, unhurried, and very clear about what he wants. You drive home thinking about it for three days. Then you go back." }
-      });
-    }, 4000);
-  }, [gameState.hasMadePoliticalDonation]);
-
-  // ── WIN CONDITION CHECKS ──
-  useEffect(function() {
-    if (tierScreen === "tycoon_chase") {
-      if (passiveIncome >= MOGUL_PASSIVE_TARGET) { setTierScreen("mogul"); return; }
-      if (totalAssets >= TYCOON_ASSET_TARGET) { setTierScreen("tycoon"); return; }
-    }
-    if (tierScreen === "none" && passiveIncome > 0) {
-      var target = calcTarget(winAmount);
-      if (passiveIncome >= target) {
-        setTierScreen("suburban");
-      }
-    }
-  }, [passiveIncome, totalAssets, tierScreen, winAmount]);
-
-  var handleStart = useCallback(function(amt) {
-    setWinAmount(amt);
-    setCash(amt);
-    startT.current = Date.now();
+  var handleStart = useCallback(function(amt, name) {
+    setWinAmount(amt); setPlayerName(name||""); setCash(amt); setPassiveIncome(0);
+    setAnnualCosts(0); setWeeksElapsed(0); setNodeKey("root"); setPendingEvent(null);
+    setPendingOutcome(null); setPendingNotif(null); setNotifResult(null); setShowBlackjack(false);
+    setTierScreen("none"); setDebt(0); setShowFinance(null); setShowBillFinale(false);
+    setNodeHistory([]); setShowTycoon(true); setVidoDebt(0); setVidoWeeks(0);
+    setShowVidoCoin(false); setPassiveGlow(null); lastGlowWeek.current = -1;
+    setGameState(Object.assign(initialGS(), { bigToys:[], lady:[] }));
+    weeksRef.current=0; lastEvt.current=0; lastNotifWeek.current=0;
+    setDaysElapsed(0); shownNotifsRef.current=[]; startT.current=Date.now();
     setScreen("game");
   }, []);
 
-  var handleHome = useCallback(function() {
-    // If in tycoon mode, return to tycoon dashboard not root menu
-    if (gsRef.current && gsRef.current.tycoonMode) {
-      setShowTycoon(true);
-      setPendingOutcome(null);
-      return;
-    }
-    setNodeKey("root");
-    setNodeHistory([]);
-    setPendingOutcome(null);
-    setShowTycoon(false);
-  }, []);
-
   var handleChoice = useCallback(function(choice, node) {
-    if (choice.next === "__finance__") { setShowFinance({}); return; }
-    if (choice.next === "__tycoon__") { setShowTycoon(true); return; }
-    if (choice.next === "__bill_finale__") { setShowBillFinale(true); return; }
-    var cost = choice.cost || 0;
-    var pAdd = (choice.passiveAdd || 0) + (node.passiveAdd || 0);
-    var aAdd = (choice.annualAdd || 0) + (node.annualAdd || 0);
-    var bLoss = node.bonusLoss || 0;
-    var cAdd = node.cashAdd || 0;
-    if (cost > 0) setCash(function(c) { return Math.max(0, c - cost); });
-    if (cAdd > 0) setCash(function(c) { return c + cAdd; });
-    if (bLoss > 0) setCash(function(c) { return Math.max(0, c - bLoss); });
-    if (pAdd > 0) setPassiveIncome(function(p) { return p + pAdd; });
-    if (aAdd > 0) setAnnualCosts(function(a) { return a + aAdd; });
-    if (node.action) setGameState(function(gs) { return node.action(gs); });
-    if (node.outcome) {
-      setPendingOutcome({ text: node.text, next: choice.next || "root" });
-    } else {
-      setNodeHistory(function(h) { return h.concat([nodeKey]); });
-      setNodeKey(choice.next);
-    }
+    if (choice.next==="__finance__"){setShowFinance({});return;}
+    if (choice.next==="__tycoon__"){setShowTycoon(true);return;}
+    if (choice.next==="__bill_finale__"){setShowBillFinale(true);return;}
+    var cost=choice.cost||0;
+    var pAdd=(choice.passiveAdd||0)+(node.passiveAdd||0);
+    var aAdd=(choice.annualAdd||0)+(node.annualAdd||0);
+    var bLoss=node.bonusLoss||0;
+    var cAdd=node.cashAdd||0;
+    if(cost>0)setCash(function(c){return Math.max(0,c-cost);});
+    if(cAdd>0)setCash(function(c){return c+cAdd;});
+    if(bLoss>0)setCash(function(c){return Math.max(0,c-bLoss);});
+    if(pAdd>0)setPassiveIncome(function(p){return p+pAdd;});
+    if(aAdd>0)setAnnualCosts(function(a){return a+aAdd;});
+    if(node.action)setGameState(function(gs){return node.action(gs);});
+    if(node.outcome){setPendingOutcome({text:node.text,next:choice.next||"root"});}
+    else{setNodeHistory(function(h){return h.concat([nodeKey]);});setNodeKey(choice.next);}
   }, [nodeKey]);
 
   var handleOutcome = useCallback(function() {
-    if (!pendingOutcome) return;
-    var next = pendingOutcome.next;
-    setPendingOutcome(null);
-    setNodeKey(next);
+    if(!pendingOutcome)return;
+    var next=pendingOutcome.next;
+    setPendingOutcome(null); setNodeKey(next);
   }, [pendingOutcome]);
 
-  var handleFinanceOpen = useCallback(function(context) {
-    setShowFinance(context || {});
-  }, []);
+  var handleFinanceOpen = useCallback(function(ctx){setShowFinance(ctx||{});}, []);
 
   var handleBack = useCallback(function() {
-    if (nodeHistory.length === 0) { setNodeKey("root"); return; }
-    var prev = nodeHistory[nodeHistory.length - 1];
-    setNodeHistory(function(h) { return h.slice(0, -1); });
-    setNodeKey(prev);
+    if(nodeHistory.length===0){setNodeKey("root");return;}
+    var prev=nodeHistory[nodeHistory.length-1];
+    setNodeHistory(function(h){return h.slice(0,-1);}); setNodeKey(prev);
   }, [nodeHistory]);
 
   var handleEvent = useCallback(function() {
-    if (!pendingEvent) return;
-    var e = pendingEvent;
-    if (e.cost) setCash(function(c) { return Math.max(0, c - e.cost); });
-    if (e.passiveChange) setPassiveIncome(function(p) { return Math.max(0, p + p * e.passiveChange); });
-    if (e.passiveAdd) setPassiveIncome(function(p) { return p + e.passiveAdd; });
+    if(!pendingEvent)return;
+    var e=pendingEvent;
+    if(e.cost)setCash(function(c){return Math.max(0,c-e.cost);});
+    if(e.passiveChange)setPassiveIncome(function(p){return Math.max(0,p+p*e.passiveChange);});
+    if(e.passiveAdd)setPassiveIncome(function(p){return p+e.passiveAdd;});
     setPendingEvent(null);
   }, [pendingEvent]);
 
-  var handleBjFinish = useCallback(function(net, result) {
+  var handleBjFinish = useCallback(function(net, res) {
     setShowBlackjack(false);
-    if (result === "declined") return;
-    setCash(function(c) { return Math.max(0, c + net); });
-    setGameState(function(gs) {
-      return Object.assign({}, gs, {
-        gamblingStreak: Math.min((gs.gamblingStreak || 0) + 1, 4),
-        gamblingTotal: (gs.gamblingTotal || 0) + (net < 0 ? Math.abs(net) : 0),
-      });
-    });
-    var absNet = Math.abs(net);
-    var resultMsg = result === "blackjack" ? "Blackjack. " + fmtFull(absNet) + " profit. You collect and nod to the dealer."
-      : result === "win" ? "You walk away " + fmtFull(absNet) + " up."
-      : result === "push" ? "Push. Nobody wins, nobody loses."
-      : "Down " + fmtFull(absNet) + ". The casino moves on.";
-    setNotifResult({ msg: resultMsg, cost: net < 0 ? absNet : 0, gain: net > 0 ? absNet : 0, isGamble:true, won: net >= 0 });
+    if(res==="declined")return;
+    setCash(function(c){return Math.max(0,c+net);});
+    setGameState(function(gs){return Object.assign({},gs,{gamblingStreak:Math.min((gs.gamblingStreak||0)+1,4),gamblingTotal:(gs.gamblingTotal||0)+(net<0?Math.abs(net):0)});});
+    var absNet=Math.abs(net);
+    var rm=res==="blackjack"?"Blackjack. "+fmtFull(absNet)+" profit.":res==="win"?"You walk away "+fmtFull(absNet)+" up.":res==="push"?"Push. Nobody wins, nobody loses.":"Down "+fmtFull(absNet)+".";
+    setNotifResult({msg:rm,cost:net<0?absNet:0,gain:net>0?absNet:0,isGamble:true,won:net>=0});
   }, []);
 
-  var CASINO_NOTIF_IDS = ["gamble_0b","gamble_1","gamble_2b"];
-
+  var CASINO_IDS = ["gamble_0b","gamble_1","gamble_2b"];
   var handleNotifAccept = useCallback(function() {
-    if (!pendingNotif) return;
-    var notif = pendingNotif;
-    setPendingNotif(null);
-    if (CASINO_NOTIF_IDS.indexOf(notif.id) >= 0) { setShowBlackjack(true); return; }
-    if (notif.onAccept && notif.onAccept.costMin !== undefined) {
-      var oa = notif.onAccept;
-      var won = Math.random() < oa.winChance;
-      var stake = oa.costMin + Math.floor(Math.random() * (oa.costMax - oa.costMin + 1));
-      var net = won ? Math.round(stake * oa.winMultiplier) - stake : -stake;
-      var absCost = won ? 0 : stake;
-      var absGain = won ? Math.round(stake * oa.winMultiplier) : 0;
-      setCash(function(c) { return Math.max(0, c + net); });
-      setGameState(function(gs) {
-        return Object.assign({}, gs, {
-          gamblingStreak: notif.id === "gamble_wise" ? 0 : Math.min((gs.gamblingStreak || 0) + 1, 4),
-          gamblingTotal: (gs.gamblingTotal || 0) + (won ? -net : stake),
-        });
-      });
-      setNotifResult({ msg: won ? oa.winMsg : oa.loseMsg, cost: absCost, gain: absGain, isGamble:true, won: won });
+    if(!pendingNotif)return;
+    var notif=pendingNotif; setPendingNotif(null);
+    if(CASINO_IDS.indexOf(notif.id)>=0){setShowBlackjack(true);return;}
+    if(notif.onAccept&&notif.onAccept.costMin!==undefined){
+      var oa=notif.onAccept,won=Math.random()<oa.winChance,stake=oa.costMin+Math.floor(Math.random()*(oa.costMax-oa.costMin+1));
+      var net=won?Math.round(stake*oa.winMultiplier)-stake:-stake;
+      setCash(function(c){return Math.max(0,c+net);});
+      setGameState(function(gs){return Object.assign({},gs,{gamblingStreak:notif.id==="gamble_wise"?0:Math.min((gs.gamblingStreak||0)+1,4),gamblingTotal:(gs.gamblingTotal||0)+(won?-net:stake)});});
+      setNotifResult({msg:won?oa.winMsg:oa.loseMsg,cost:won?0:stake,gain:won?Math.round(stake*oa.winMultiplier):0,isGamble:true,won:won});
       return;
     }
-    if (notif.politicoTrigger) {
-      var sName = pickSonName();
-      setGameState(function(gs) { return Object.assign({}, gs, { sonName: sName }); });
+    if(notif.politicoTrigger){
+      var sn=pickSonName(); setGameState(function(gs){return Object.assign({},gs,{sonName:sn});});
       setNodeKey("politico_root");
-      setNotifResult({ msg: "The dinner is excellent. Murray Cresswell MP is charming and very clear about what he wants. His son's name is " + sName + ".", cost:0, passiveAdd:0 });
+      setNotifResult({msg:"The dinner is excellent. Murray Cresswell MP is charming and very clear about what he wants. His son's name is "+sn+".",cost:0,passiveAdd:0});
       return;
     }
-    if (notif.gatesPath) {
-      setGameState(function(gs) { return Object.assign({}, gs, { billionaireMode: true }); });
-      setNodeKey("bill_root");
-      setNotifResult({ msg: notif.onAccept.msg, cost: 0, passiveAdd: 0 });
+    if(notif.gatesPath){setGameState(function(gs){return Object.assign({},gs,{billionaireMode:true});});setNodeKey("bill_root");setNotifResult({msg:notif.onAccept.msg,cost:0,passiveAdd:0});return;}
+    if(notif.paulsonStructureTrigger){setGameState(function(gs){return Object.assign({},gs,{paulsonContact:Math.max(2,gs.paulsonContact||0)});});setNodeKey("paulson_structure");setNotifResult({msg:notif.onAccept.msg,cost:0,passiveAdd:0});return;}
+    if(notif.paulsonContact){
+      var pc=notif.paulsonContact,pCost=notif.onAccept.cost||0,pPA=notif.onAccept.passiveAdd||0;
+      if(pCost>0)setCash(function(c){return Math.max(0,c-pCost);});
+      if(pPA>0)setPassiveIncome(function(p){return p+pPA;});
+      setGameState(function(gs){return Object.assign({},gs,{paulsonContact:Math.max(gs.paulsonContact||0,pc),billionaireMode:pc>=4?true:gs.billionaireMode});});
+      if(pc>=4)setNodeKey("paulson_opportunity");
+      setNotifResult({msg:notif.onAccept.msg,cost:pCost,passiveAdd:pPA});
       return;
     }
-    if (notif.paulsonStructureTrigger) {
-      setGameState(function(gs) { return Object.assign({}, gs, { paulsonContact: Math.max(2, gs.paulsonContact||0) }); });
-      setNodeKey("paulson_structure");
-      setNotifResult({ msg: notif.onAccept.msg, cost:0, passiveAdd:0 });
-      return;
-    }
-    if (notif.paulsonContact) {
-      var pc = notif.paulsonContact;
-      var pCost = notif.onAccept.cost || 0;
-      var pPassAdd = notif.onAccept.passiveAdd || 0;
-      if (pCost > 0) setCash(function(c) { return Math.max(0, c - pCost); });
-      if (pPassAdd > 0) setPassiveIncome(function(p) { return p + pPassAdd; });
-      setGameState(function(gs) { return Object.assign({}, gs, { paulsonContact: Math.max(gs.paulsonContact||0, pc), billionaireMode: pc >= 4 ? true : gs.billionaireMode }); });
-      if (pc >= 4) setNodeKey("paulson_opportunity");
-      setNotifResult({ msg: notif.onAccept.msg, cost: pCost, passiveAdd: pPassAdd });
-      return;
-    }
-    var oa2 = notif.onAccept;
-    if (oa2.cost > 0) setCash(function(c) { return Math.max(0, c - oa2.cost); });
-    if (oa2.passiveAdd > 0) setPassiveIncome(function(p) { return p + oa2.passiveAdd; });
-    setNotifResult({ msg: oa2.msg, cost: oa2.cost || 0, passiveAdd: oa2.passiveAdd || 0 });
+    var oa2=notif.onAccept;
+    if(oa2.cost>0)setCash(function(c){return Math.max(0,c-oa2.cost);});
+    if(oa2.passiveAdd>0)setPassiveIncome(function(p){return p+oa2.passiveAdd;});
+    setNotifResult({msg:oa2.msg,cost:oa2.cost||0,passiveAdd:oa2.passiveAdd||0});
   }, [pendingNotif]);
 
-  var handleNotifReject = useCallback(function() { setPendingNotif(null); }, []);
-  var handleNotifResultDone = useCallback(function() { setNotifResult(null); }, []);
+  var handleNotifReject = useCallback(function(){setPendingNotif(null);},[]);
+  var handleNotifResultDone = useCallback(function(){setNotifResult(null);},[]);
+  var handleBorrow = useCallback(function(amt){setCash(function(c){return c+amt;});setDebt(function(d){return d+amt;});},[]);
+  var handleVidoBorrow = useCallback(function(amt){setCash(function(c){return c+amt;});setVidoDebt(function(d){return d+amt;});setVidoWeeks(0);},[]);
+  var handleRepay = useCallback(function(amt){setCash(function(c){return Math.max(0,c-amt);});setDebt(function(d){return Math.max(0,d-amt);});},[]);
+  var handleSellAsset = useCallback(function(invType,salePrice,passiveRemoved){
+    setCash(function(c){return c+salePrice;});
+    if(passiveRemoved>0)setPassiveIncome(function(p){return Math.max(0,p-passiveRemoved);});
+    setGameState(function(gs){var removed=false;var newInv=gs.investments.filter(function(inv){if(!removed&&inv.type===invType){removed=true;return false;}return true;});return Object.assign({},gs,{investments:newInv});});
+  },[]);
+  var handleAcquire = useCallback(function(acq){
+    if(acq.id==="political")setGameState(function(gs){return Object.assign({},gs,{hasMadePoliticalDonation:true});});
+    setCash(function(c){return Math.max(0,c-acq.cost);});
+    if(acq.passiveIncome>0)setPassiveIncome(function(p){return p+acq.passiveIncome;});
+    if(acq.annualCost>0)setAnnualCosts(function(a){return a+acq.annualCost;});
+    setGameState(function(gs){return Object.assign({},gs,{legacyScore:(gs.legacyScore||0)+(acq.legacyDelta||0),tycoonAssets:(gs.tycoonAssets||[]).concat([{id:acq.id,icon:acq.icon,name:acq.name,passiveIncome:acq.passiveIncome,assetValue:acq.assetValue}])});});
+  },[]);
+  var handleEnterTycoon = useCallback(function(){setGameState(function(gs){return Object.assign({},gs,{tycoonMode:true});});setTierScreen("tycoon_chase");},[]);
+  var handleSailOff = useCallback(function(tier){setSailTier(tier||"suburban");setTierScreen("sailoff");setTimeout(function(){buildScorecard(tier||"sailoff");setScreen("ended");},500);},[passiveIncome,winAmount]);
 
-  var handleBorrow = useCallback(function(amount) {
-    setCash(function(c) { return c + amount; });
-    setDebt(function(d) { return d + amount; });
-  }, []);
-
-  var handleVidoBorrow = useCallback(function(amount) {
-    setCash(function(c) { return c + amount; });
-    setVidoDebt(function(d) { return d + amount; });
-    setVidoWeeks(0);
-  }, []);
-
-  var handleRepay = useCallback(function(amount) {
-    setCash(function(c) { return Math.max(0, c - amount); });
-    setDebt(function(d) { return Math.max(0, d - amount); });
-  }, []);
-
-  var handleSellAsset = useCallback(function(invType, salePrice, passiveRemoved) {
-    setCash(function(c) { return c + salePrice; });
-    if (passiveRemoved > 0) setPassiveIncome(function(p) { return Math.max(0, p - passiveRemoved); });
-    setGameState(function(gs) {
-      var removed = false;
-      var newInv = gs.investments.filter(function(inv) {
-        if (!removed && inv.type === invType) { removed = true; return false; }
-        return true;
-      });
-      return Object.assign({}, gs, { investments: newInv });
-    });
-  }, []);
-
-  var handleAcquire = useCallback(function(acq) {
-    if (acq.id === "political") {
-      setGameState(function(gs) { return Object.assign({}, gs, { hasMadePoliticalDonation: true }); });
-    }
-    setCash(function(c) { return Math.max(0, c - acq.cost); });
-    if (acq.passiveIncome > 0) setPassiveIncome(function(p) { return p + acq.passiveIncome; });
-    if (acq.annualCost > 0) setAnnualCosts(function(a) { return a + acq.annualCost; });
-    setGameState(function(gs) {
-      return Object.assign({}, gs, {
-        legacyScore: (gs.legacyScore || 0) + (acq.legacyDelta || 0),
-        tycoonAssets: (gs.tycoonAssets || []).concat([{ id:acq.id, icon:acq.icon, name:acq.name, passiveIncome:acq.passiveIncome, assetValue:acq.assetValue }]),
-      });
-    });
-  }, []);
-
-  var handleEnterTycoon = useCallback(function() {
-    setGameState(function(gs) { return Object.assign({}, gs, { tycoonMode: true }); });
-    setTierScreen("tycoon_chase");
-  }, []);
-
-  var handleSailOff = useCallback(function(tier) {
-    setSailTier(tier || "suburban");
-    setTierScreen("sailoff");
-    // Trigger scorecard
-    if (onEnd) setTimeout(function() { onEnd(tier || "sailoff", gsRef.current); }, 500);
-  }, []);
-
-  // ── ENDING SCREENS ──
-  if (tierScreen === "suburban") {
+  // ── REVEAL SCREEN ──
+  if (screen === "reveal") {
     return React.createElement(React.Fragment, null,
       React.createElement("style", null, CSS),
-      React.createElement(SuburbanLegendScreen, {
-        passiveIncome:passiveIncome, weeksElapsed:weeksElapsed, winAmount:winAmount, gameState:gameState,
-        onSailOff: function() { handleSailOff("suburban"); if(onEnd) onEnd("suburban", gameState); },
-        onKeepGoing: handleEnterTycoon,
-        onRestart: function() { if(onEnd) onEnd("suburban", gameState); }
-      })
+      React.createElement(RevealScreen, { onStart:handleStart, onLeaderboard:function(){setShowLeaderboard(true);} }),
+      showLeaderboard && React.createElement(LeaderboardScreen, { board:board, onClose:function(){setShowLeaderboard(false);} })
     );
   }
-  if (tierScreen === "mogul") {
+
+  // ── TOMBSTONE ──
+  if (screen === "tombstone") {
     return React.createElement(React.Fragment, null,
       React.createElement("style", null, CSS),
-      React.createElement(CityMogulScreen, {
-        passiveIncome:passiveIncome, weeksElapsed:weeksElapsed, totalAssets:totalAssets, gameState:gameState,
-        onSailOff: function() { if(onEnd) onEnd("mogul", gameState); },
-        onKeepGoing: function() { setTierScreen("tycoon_chase"); },
-        onRestart: function() { if(onEnd) onEnd("mogul", gameState); }
-      })
-    );
-  }
-  if (tierScreen === "tycoon") {
-    return React.createElement(React.Fragment, null,
-      React.createElement("style", null, CSS),
-      React.createElement(TycoonScreen, {
-        passiveIncome:passiveIncome, weeksElapsed:weeksElapsed, totalAssets:totalAssets, gameState:gameState,
-        onRestart: function() { if(onEnd) onEnd("tycoon", gameState); }
-      })
-    );
-  }
-  if (tierScreen === "sailoff") {
-    return React.createElement(React.Fragment, null,
-      React.createElement("style", null, CSS),
-      React.createElement(SailOffScreen, {
-        tier:sailTier, passiveIncome:passiveIncome, gameState:gameState,
-        onRestart: function() { if(onEnd) onEnd("sailoff", gameState); }
-      })
-    );
-  }
-  if (screen === "win") {
-    return React.createElement(React.Fragment, null,
-      React.createElement("style", null, CSS),
-      React.createElement(WinScreen, {
-        passiveIncome:passiveIncome, weeksElapsed:weeksElapsed, winAmount:winAmount, gameState:gameState,
-        onRestart: function() { if(onEnd) onEnd("win", gameState); }
+      React.createElement(TombstoneScreen, {
+        playerName:playerName, winAmount:winAmount, weeksElapsed:weeksElapsed,
+        vidoDeath:true,
+        onRestart:function(){setScreen("reveal");}
       })
     );
   }
 
+  // ── GAMEOVER ──
+  if (screen === "gameover") {
+    return React.createElement(React.Fragment, null,
+      React.createElement("style", null, CSS),
+      React.createElement(GameOverScreen, { passiveIncome:passiveIncome, weeksElapsed:weeksElapsed, winAmount:winAmount, onRestart:function(){setScreen("reveal");} })
+    );
+  }
+
+  // ── ENDED (scorecard shown) ──
+  if (screen === "ended") {
+    return React.createElement(React.Fragment, null,
+      React.createElement("style", null, CSS),
+      showScorecard && scorecardEntry && React.createElement(ScorecardModal, { entry:scorecardEntry, board:board, rank:scorecardRank, onClose:function(){setShowScorecard(false);setScreen("reveal");} }),
+      showLeaderboard && React.createElement(LeaderboardScreen, { board:board, onClose:function(){setShowLeaderboard(false);} })
+    );
+  }
+
+  // ── TIER SCREENS ──
+  if(tierScreen==="suburban"){return React.createElement(React.Fragment,null,React.createElement("style",null,CSS),React.createElement(SuburbanLegendScreen,{passiveIncome:passiveIncome,weeksElapsed:weeksElapsed,winAmount:winAmount,gameState:gameState,onSailOff:function(){handleSailOff("suburban");},onKeepGoing:handleEnterTycoon,onRestart:function(){buildScorecard("suburban");setScreen("ended");}}));}
+  if(tierScreen==="mogul"){return React.createElement(React.Fragment,null,React.createElement("style",null,CSS),React.createElement(CityMogulScreen,{passiveIncome:passiveIncome,weeksElapsed:weeksElapsed,totalAssets:totalAssets,gameState:gameState,onSailOff:function(){handleSailOff("mogul");},onKeepGoing:function(){setTierScreen("tycoon_chase");},onRestart:function(){buildScorecard("mogul");setScreen("ended");}}));}
+  if(tierScreen==="tycoon"){return React.createElement(React.Fragment,null,React.createElement("style",null,CSS),React.createElement(TycoonScreen,{passiveIncome:passiveIncome,weeksElapsed:weeksElapsed,totalAssets:totalAssets,gameState:gameState,onRestart:function(){buildScorecard("tycoon");setScreen("ended");}}));}
+  if(tierScreen==="sailoff"){return React.createElement(React.Fragment,null,React.createElement("style",null,CSS),React.createElement(SailOffScreen,{tier:sailTier,passiveIncome:passiveIncome,gameState:gameState,onRestart:function(){setScreen("reveal");setTierScreen("none");}}));}
+
+  // ── MAIN GAME ──
   var content;
-  if (notifResult) {
-    content = React.createElement(NotifResult, { msg:notifResult.msg, cost:notifResult.cost, gain:notifResult.gain||0, passiveAdd:notifResult.passiveAdd||0, isGamble:notifResult.isGamble, won:notifResult.won, onContinue:handleNotifResultDone });
-  } else if (pendingEvent) {
-    content = React.createElement(EventCard, { event:pendingEvent, onContinue:handleEvent });
-  } else if (pendingOutcome) {
-    content = React.createElement(OutcomeCard, { text:pendingOutcome.text, onContinue:handleOutcome });
-  } else {
-    if (gameState.billionaireMode && !gameState.billFoundationPct) {
-      content = React.createElement(DecisionCard, { nodeKey: nodeKey.startsWith("bill_") ? nodeKey : "bill_root", gameState:gameState, cash:cash, onChoice:handleChoice, onBack:handleBack, onFinance:handleFinanceOpen });
-    } else if (nodeKey.startsWith("politico_")) {
-      content = React.createElement(DecisionCard, { nodeKey:nodeKey, gameState:gameState, cash:cash, onChoice:handleChoice, onBack:handleBack, onFinance:handleFinanceOpen });
-    } else if (gameState.tycoonMode && showTycoon) {
-      content = React.createElement(TycoonDashboard, { cash:cash, passiveIncome:passiveIncome, gameState:gameState, totalAssets:totalAssets,
-        onAcquire:handleAcquire, onFinance:handleFinanceOpen,
-        onSailOff:function(){ handleSailOff(totalAssets >= 10000000 ? "mogul" : "suburban"); }
-      });
-    } else {
-      content = React.createElement(React.Fragment, null,
-        React.createElement(DecisionCard, { nodeKey:nodeKey, gameState:gameState, cash:cash, onChoice:handleChoice, onBack:handleBack, onFinance:handleFinanceOpen }),
-        nodeKey === "root" && React.createElement(StatusBar, { gameState:gameState, annualCosts:annualCosts })
-      );
-    }
-  }
+  if(notifResult){content=React.createElement(NotifResult,{msg:notifResult.msg,cost:notifResult.cost,gain:notifResult.gain||0,passiveAdd:notifResult.passiveAdd||0,isGamble:notifResult.isGamble,won:notifResult.won,onContinue:handleNotifResultDone});}
+  else if(pendingEvent){content=React.createElement(EventCard,{event:pendingEvent,onContinue:handleEvent});}
+  else if(pendingOutcome){content=React.createElement(OutcomeCard,{text:pendingOutcome.text,onContinue:handleOutcome});}
+  else if(gameState.billionaireMode&&!gameState.billFoundationPct){content=React.createElement(DecisionCard,{nodeKey:nodeKey.startsWith("bill_")?nodeKey:"bill_root",gameState:gameState,cash:cash,onChoice:handleChoice,onBack:handleBack,onFinance:handleFinanceOpen});}
+  else if(nodeKey.startsWith("politico_")){content=React.createElement(DecisionCard,{nodeKey:nodeKey,gameState:gameState,cash:cash,onChoice:handleChoice,onBack:handleBack,onFinance:handleFinanceOpen});}
+  else if(gameState.tycoonMode&&showTycoon){content=React.createElement(TycoonDashboard,{cash:cash,passiveIncome:passiveIncome,gameState:gameState,totalAssets:totalAssets,onAcquire:handleAcquire,onFinance:handleFinanceOpen,onSailOff:function(){handleSailOff(totalAssets>=10000000?"mogul":"suburban");}});}
+  else{content=React.createElement(React.Fragment,null,React.createElement(DecisionCard,{nodeKey:nodeKey,gameState:gameState,cash:cash,onChoice:handleChoice,onBack:handleBack,onFinance:handleFinanceOpen}),nodeKey==="root"&&React.createElement(StatusBar,{gameState:gameState,annualCosts:annualCosts}));}
 
-  return React.createElement("div", { style:{ minHeight:"100vh", background:C.black, color:C.white, fontFamily:"Georgia,serif" } },
-    React.createElement(HUD, { cash:cash, passiveIncome:passiveIncome, weeksElapsed:weeksElapsed, daysElapsed:daysElapsed, winAmount:winAmount, debt:debt, vidoDebt:vidoDebt, gameState:gameState, onHome:handleHome }),
-    React.createElement("div", { style:{ minHeight:"calc(100vh - 80px)", paddingBottom:"3rem" } }, content),
-    showBillFinale && React.createElement(BillionaireScreen, { gameState:gameState, netWorth:gameState.billNetWorth||0,
-      onRestart:function(){ if(onEnd) onEnd("billionaire", gameState); }
-    }),
-    pendingNotif && React.createElement(NotificationPopup, { notif:pendingNotif, onAccept:handleNotifAccept, onReject:handleNotifReject }),
-    showFinance && React.createElement(FinanceModal, { cash:cash, passiveIncome:passiveIncome, debt:debt, vidoDebt:vidoDebt, vidoWeeks:vidoWeeks, investments:gameState.investments, context:showFinance, onBorrow:handleBorrow, onVidoBorrow:handleVidoBorrow, onRepay:handleRepay, onSell:handleSellAsset, onClose:function(){ setShowFinance(null); } }),
-    showBlackjack && React.createElement(BlackjackGame, { cash:cash, onFinish:handleBjFinish }),
-    passiveGlow && React.createElement(PassiveGlowOverlay, { amount:passiveGlow.amount, message:passiveGlow.message })
+  return React.createElement("div",{style:{minHeight:"100vh",background:C.black,color:C.white,fontFamily:"Georgia,serif"}},
+    React.createElement("style",null,CSS + "@keyframes passiveGlow{0%{opacity:0}15%{opacity:1}70%{opacity:1}100%{opacity:0}} @keyframes passiveSlide{0%{opacity:0;transform:translateY(8px)}15%{opacity:1;transform:translateY(0)}70%{opacity:1;transform:translateY(0)}100%{opacity:0;transform:translateY(-12px)}} @keyframes edgeGlow{0%{opacity:0}20%{opacity:1}65%{opacity:1}100%{opacity:0}} @keyframes coinSpin{0%{transform:rotateY(0deg)}50%{transform:rotateY(90deg)}100%{transform:rotateY(180deg)}}"),
+    React.createElement(HUD,{cash:cash,passiveIncome:passiveIncome,weeksElapsed:weeksElapsed,daysElapsed:daysElapsed,winAmount:winAmount,debt:debt,vidoDebt:vidoDebt,gameState:gameState,onHome:handleHome}),
+    React.createElement("div",{style:{minHeight:"calc(100vh - 80px)",paddingBottom:"3rem"}},content),
+    showBillFinale&&React.createElement(BillionaireScreen,{gameState:gameState,netWorth:gameState.billNetWorth||0,onRestart:function(){buildScorecard("billionaire");setScreen("ended");}}),
+    pendingNotif&&React.createElement(NotificationPopup,{notif:pendingNotif,onAccept:handleNotifAccept,onReject:handleNotifReject}),
+    showFinance&&React.createElement(FinanceModal,{cash:cash,passiveIncome:passiveIncome,debt:debt,vidoDebt:vidoDebt,vidoWeeks:vidoWeeks,investments:gameState.investments,context:showFinance,onBorrow:handleBorrow,onVidoBorrow:handleVidoBorrow,onRepay:handleRepay,onSell:handleSellAsset,onClose:function(){setShowFinance(null);}}),
+    showBlackjack&&React.createElement(BlackjackGame,{cash:cash,onFinish:handleBjFinish}),
+    passiveGlow&&React.createElement(PassiveGlowOverlay,{amount:passiveGlow.amount,message:passiveGlow.message}),
+    showVidoCoin&&React.createElement(VidoCoinFlip,{playerName:playerName,vidoDebt:vidoCoinDebt,
+      onSurvive:function(){setVidoDebt(vidoCoinDebt);vidoDebtRef.current=vidoCoinDebt;setVidoWeeks(0);setShowVidoCoin(false);setPendingEvent({text:"🔪 Six months. Vido pockets the coin. "+fmtFull(vidoCoinDebt)+" outstanding. The clock is already running.",type:"bad",cost:0});},
+      onDeath:function(){setShowVidoCoin(false);setScreen("tombstone");}
+    })
   );
 }
 
