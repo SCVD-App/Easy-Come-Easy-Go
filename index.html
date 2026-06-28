@@ -32,6 +32,75 @@ var useCallback = React.useCallback;
 
 <script>
 
+
+// ── PASSIVE INCOME GLOW OVERLAY ──────────────────────────
+function PassiveGlowOverlay(props) {
+  var amount = props.amount;
+  var message = props.message || "Passive income credited";
+  if (!amount) return null;
+
+  var formatted = amount >= 1000
+    ? "+$" + Math.round(amount).toLocaleString("en-AU")
+    : "+$" + Math.round(amount);
+
+  return React.createElement("div", {
+    style: {
+      position:"fixed", inset:0, zIndex:500,
+      pointerEvents:"none", overflow:"hidden"
+    }
+  },
+    // Four edge glow panels — same as Mic Drop VIP
+    React.createElement("div", { style:{
+      position:"absolute", top:0, left:0, right:0, height:"180px",
+      background:"linear-gradient(to bottom, #C9A84C55, transparent)",
+      animation:"edgeGlow 2.8s ease forwards"
+    }}),
+    React.createElement("div", { style:{
+      position:"absolute", bottom:0, left:0, right:0, height:"180px",
+      background:"linear-gradient(to top, #C9A84C55, transparent)",
+      animation:"edgeGlow 2.8s ease forwards"
+    }}),
+    React.createElement("div", { style:{
+      position:"absolute", top:0, bottom:0, left:0, width:"120px",
+      background:"linear-gradient(to right, #C9A84C44, transparent)",
+      animation:"edgeGlow 2.8s ease forwards"
+    }}),
+    React.createElement("div", { style:{
+      position:"absolute", top:0, bottom:0, right:0, width:"120px",
+      background:"linear-gradient(to left, #C9A84C44, transparent)",
+      animation:"edgeGlow 2.8s ease forwards"
+    }}),
+
+    // Central toast — amount + message
+    React.createElement("div", {
+      style:{
+        position:"absolute", top:"50%", left:"50%",
+        transform:"translate(-50%,-50%)",
+        textAlign:"center", pointerEvents:"none"
+      }
+    },
+      React.createElement("div", {
+        style:{
+          fontSize:"clamp(2rem,6vw,3.5rem)", fontWeight:900,
+          color:"#C9A84C", fontFamily:"Georgia,serif",
+          animation:"passiveSlide 2.8s ease forwards",
+          textShadow:"0 0 40px #C9A84C, 0 0 80px #C9A84C88",
+          letterSpacing:"0.02em", lineHeight:1
+        }
+      }, formatted),
+      React.createElement("div", {
+        style:{
+          fontSize:"clamp(0.75rem,2vw,0.95rem)",
+          color:"#f5f3ee", marginTop:"0.5rem",
+          letterSpacing:"0.15em", textTransform:"uppercase",
+          animation:"passiveGlow 2.8s ease forwards",
+          textShadow:"0 0 20px #C9A84C88"
+        }
+      }, message)
+    )
+  );
+}
+
 // ── OZMANIAN NAME GENERATOR ───────────────────────────────
 var OZ_FIRST = ["Rex","Barry","Dazza","Bazza","Shazza","Gazza","Cobber","Bluey","Macca","Johnno","Robbo","Smithy","Wazza","Mungo","Nugget","Trev","Bev","Shirl","Cheryl","Bron","Darko","Stavros","Rosco","Thommo","Cazza"];
 var OZ_LAST = ["Harrington","Goldfields","Cashmore","Richman","Winslow","Bonanza","Jackpot","Fortune","Millward","Goldsworthy","Bullion","Sterling","Sovereign","Minted","Loaded","Windfall","Rollover","Bigwin","Cashmore","Profitt","Moneypenny","Bullseye","Luckystone","Bonner","Stacks"];
@@ -976,15 +1045,15 @@ function nodeBillBuild(gs) {
 }
 function nodeBillBuildSaas(gs) {
   return { text: "You build a SaaS platform for enterprise compliance management. Boring name, boring problem, enormous market. Year one: 40 clients at $4,000/month each. The Camry is still in the car park. Nobody at the office knows about the lottery.", outcome: true, cost: 3000000, choices: [{ label: "→ What's next?", next: "bill_root" }],
-    action: function(g) { return Object.assign({}, g, { billNetWorth: (g.billNetWorth||0)+8000000, passiveIncome: (g.passiveIncome||0)+160000, billAssets: (g.billAssets||[]).concat([{ name:"Compliance SaaS Platform", icon:"⚙️", value:8000000 }]) }); } };
+    action: function(g) { return Object.assign({}, g, { billNetWorth: (g.billNetWorth||0)+8000000, billAssets: (g.billAssets||[]).concat([{ name:"Compliance SaaS Platform", icon:"⚙️", value:8000000 }]) }); } };
 }
 function nodeBillBuildLogistics(gs) {
   return { text: "Route optimisation software. Three trucking companies sign on in month one. By month six you have fourteen. The algorithm gets smarter with every delivery. $5M in, $18M valuation by year end. The Camry handles the commute fine.", outcome: true, cost: 5000000, choices: [{ label: "→ What's next?", next: "bill_root" }],
-    action: function(g) { return Object.assign({}, g, { billNetWorth: (g.billNetWorth||0)+18000000, passiveIncome: (g.passiveIncome||0)+85000, billAssets: (g.billAssets||[]).concat([{ name:"Logistics Tech Platform", icon:"🚚", value:18000000 }]) }); } };
+    action: function(g) { return Object.assign({}, g, { billNetWorth: (g.billNetWorth||0)+18000000, billAssets: (g.billAssets||[]).concat([{ name:"Logistics Tech Platform", icon:"🚚", value:18000000 }]) }); } };
 }
 function nodeBillBuildProptech(gs) {
-  return { text: "Development approval software. Every council in QLD is drowning in paper. You digitise the process. Government contracts follow. $2M in, $12M valuation. Your first government cheque arrives. It feels different from the lottery money — earned.", outcome: true, cost: 2000000, choices: [{ label: "→ What's next?", next: "bill_root" }],
-    action: function(g) { return Object.assign({}, g, { billNetWorth: (g.billNetWorth||0)+12000000, passiveIncome: (g.passiveIncome||0)+55000, billAssets: (g.billAssets||[]).concat([{ name:"PropTech Platform", icon:"🏗️", value:12000000 }]) }); } };
+  return { text: "Development approval software. Every council in QLD is drowning in paper. You digitise the process. Government contracts follow. $2M in, $12M valuation. Your first government cheque arrives. It feels different from the lottery money — earned.", outcome: true, cost: 2000000, passiveAdd: 55000, choices: [{ label: "→ What's next?", next: "bill_root" }],
+    action: function(g) { return Object.assign({}, g, { billNetWorth: (g.billNetWorth||0)+12000000, billAssets: (g.billAssets||[]).concat([{ name:"PropTech Platform", icon:"🏗️", value:12000000 }]) }); } };
 }
 
 function nodeBillAcquire(gs) {
@@ -1062,12 +1131,13 @@ function nodeBillPoachIndividual(gs) {
 
 function nodeBillLicence(gs) {
   return { text: "The platform's core algorithm can be licenced to three international markets — UK, Canada, Singapore. You don't need to expand there directly. They pay you to use your IP. Pure margin.", choices: [
-    { label: "🌏 Licence to all three — $8M upfront + royalties", next: "bill_licence_do", cost: 0 },
+    { label: "🌏 Licence to all three — $8M upfront + royalties", next: "bill_licence_do", cost: 0, passiveAdd: 48000 },
   ] };
 }
 function nodeBillLicenceDo(gs) {
   return { text: "$8M upfront. Royalties at 4% of revenue across three markets.  The money arrives while you're in a Tuesday morning standup. You don't mention it. The San Martin on your wrist keeps perfect time. You check it once.", outcome: true, choices: [{ label: "→ What's next?", next: "bill_root" }],
-    action: function(g) { return Object.assign({}, g, { billNetWorth: (g.billNetWorth||0)+8000000, passiveIncome: (g.passiveIncome||0)+48000, hasLicenced: true }); } };
+    cashAdd: 8000000,
+    action: function(g) { return Object.assign({}, g, { billNetWorth: (g.billNetWorth||0)+8000000, hasLicenced: true }); } };
 }
 
 function nodeBillEquity(gs) {
@@ -2107,6 +2177,9 @@ var CSS = [
   "@keyframes gPulse{0%,100%{text-shadow:0 0 20px #C9A84C80}50%{text-shadow:0 0 60px #C9A84C}}",
   "@keyframes warn{0%,100%{opacity:1}50%{opacity:0.5}}",
   "@keyframes eIn{from{opacity:0;transform:scale(0.96)}to{opacity:1;transform:scale(1)}}",
+  "@keyframes passiveGlow{0%{opacity:0}15%{opacity:1}70%{opacity:1}100%{opacity:0}}",
+  "@keyframes passiveSlide{0%{opacity:0;transform:translateY(8px)}15%{opacity:1;transform:translateY(0)}70%{opacity:1;transform:translateY(0)}100%{opacity:0;transform:translateY(-12px)}}",
+  "@keyframes edgeGlow{0%{opacity:0}20%{opacity:1}65%{opacity:1}100%{opacity:0}}",
   ".cbtn{transition:all .16s ease !important;border:1px solid #C9A84C28 !important;}",
   ".cbtn:hover:not(.no){background:linear-gradient(135deg,#C9A84C18,transparent) !important;border-color:#C9A84C88 !important;transform:translateX(5px) !important;}",
   ".cbtn.no{opacity:.35;cursor:not-allowed !important;}",
@@ -2997,6 +3070,9 @@ function GameCore(props) {
   var sailTier = sailTierState[0], setSailTier = sailTierState[1];
   var billFinaleState = useState(false);
   var showBillFinale = billFinaleState[0], setShowBillFinale = billFinaleState[1];
+  var passiveGlowState = useState(null); // { amount, message } | null
+  var passiveGlow = passiveGlowState[0], setPassiveGlow = passiveGlowState[1];
+  var lastGlowWeek = useRef(-1); // prevent firing twice same week
   var showTycoonState = useState(true);
   var showTycoon = showTycoonState[0], setShowTycoon = showTycoonState[1];
   var shownNotifsRef = useRef([]);
@@ -3041,6 +3117,22 @@ function GameCore(props) {
       setWeeksElapsed(nw);
       var weeklyPassive = passRef.current / 4.33;
       setCash(function(c) { return c + weeklyPassive; });
+      // Fire glow every 4 weeks when there's meaningful passive income
+      if (passRef.current >= 1000 && nw % 4 === 0 && lastGlowWeek.current !== nw) {
+        lastGlowWeek.current = nw;
+        var monthlyAmount = passRef.current;
+        var glowMessages = [
+          "Monthly passive income landed",
+          "Your money is working while you sleep",
+          "Passive income credited to your balance",
+          "The portfolio keeps delivering",
+          "Another month. Another payday.",
+          "While you were out — your money wasn't",
+        ];
+        var glowMsg = glowMessages[Math.floor(nw / 4) % glowMessages.length];
+        setPassiveGlow({ amount: monthlyAmount, message: glowMsg });
+        setTimeout(function() { setPassiveGlow(null); }, 2900);
+      }
       var exp = annRef.current / 52;
       if (debtRef.current > 0) exp += debtRef.current * CREDIT_RATE / 52;
       if (vidoDebtRef.current > 0) {
@@ -3227,8 +3319,8 @@ function GameCore(props) {
     if (choice.next === "__tycoon__") { setShowTycoon(true); return; }
     if (choice.next === "__bill_finale__") { setShowBillFinale(true); return; }
     var cost = choice.cost || 0;
-    var pAdd = choice.passiveAdd || 0;
-    var aAdd = choice.annualAdd || 0;
+    var pAdd = (choice.passiveAdd || 0) + (node.passiveAdd || 0);
+    var aAdd = (choice.annualAdd || 0) + (node.annualAdd || 0);
     var bLoss = node.bonusLoss || 0;
     var cAdd = node.cashAdd || 0;
     if (cost > 0) setCash(function(c) { return Math.max(0, c - cost); });
@@ -3493,7 +3585,8 @@ function GameCore(props) {
     }),
     pendingNotif && React.createElement(NotificationPopup, { notif:pendingNotif, onAccept:handleNotifAccept, onReject:handleNotifReject }),
     showFinance && React.createElement(FinanceModal, { cash:cash, passiveIncome:passiveIncome, debt:debt, vidoDebt:vidoDebt, vidoWeeks:vidoWeeks, investments:gameState.investments, context:showFinance, onBorrow:handleBorrow, onVidoBorrow:handleVidoBorrow, onRepay:handleRepay, onSell:handleSellAsset, onClose:function(){ setShowFinance(null); } }),
-    showBlackjack && React.createElement(BlackjackGame, { cash:cash, onFinish:handleBjFinish })
+    showBlackjack && React.createElement(BlackjackGame, { cash:cash, onFinish:handleBjFinish }),
+    passiveGlow && React.createElement(PassiveGlowOverlay, { amount:passiveGlow.amount, message:passiveGlow.message })
   );
 }
 
