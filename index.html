@@ -561,6 +561,8 @@ function initialGS() {
     wifePortfolioPassive: 0,   // counts unspectacular decisions
     billionaireMode: false, // Gates path activated
     hasMadePoliticalDonation: false, // triggers Hon. Murray approach
+    steveContacted: false,     // Steve has made contact about buying the business
+    hasBoughtBusiness: false,  // player bought the old workplace
     sonName: null,          // randomised each game
     politicoPath: 0,        // 0=not started, 1=met Murray, 2=contract, 3=precinct, 4=port
     politicoExposed: false, // journalist/inquiry triggered
@@ -701,6 +703,7 @@ function nodeInvest(gs) {
       { label: "🏦 Term deposit — 4.5% p.a., zero risk", next: "inv_term" },
       { label: "🏢 Buy a small business", next: "inv_business" },
       ...(gs.hasMadePoliticalDonation ? [] : [{ label: "🏛️ Political donation — open the right doors — $500,000", next: "inv_political", cost: 500000 }]),
+      ...(gs.steveContacted && !gs.hasBoughtBusiness ? [{ label: "🏢 Buy the old business — put Steve in charge — $2,000,000", next: "buy_business", cost: 2000000 }] : []),
       { label: "🧓 Top up superannuation", next: "inv_super" },
       { label: "💎 Your mate Craig's crypto startup", next: "inv_crypto" },
     ],
@@ -1462,6 +1465,9 @@ var NOTIFICATIONS = [
     acceptLabel:"I'm in. Set it up.", rejectLabel:"Tell me more first",
     onAccept: { cost:0, passiveAdd:0, msg:"Two days in a boardroom with Dr. Chen and her team. By the end of day one you understand exactly what she's building. By the end of day two you've made a decision. Richard watches you sign and says nothing. His expression says everything." }
   },
+
+  // ── GREG — FORGOT TO QUIT (fires from useEffect, not this array) ──
+  // Handled via dedicated useEffect — see below
 
   // ── GATES PATH TRIGGER ──
   { type:"call", tier:"legit", from:"Richard Paulson", preview:"Southrock Capital — re: your portfolio",
@@ -2766,6 +2772,59 @@ function nodeLadyArt(gs) { return { text: "Eight pieces from Ozmanian artists on
 function nodeLadyWine(gs) { return { text: "Ten days in Southvale River. Small producers, private cellars, lunch that starts at noon and ends when someone checks their watch and it's four. You come home with an embarrassing amount of knowledge about tannins.", outcome: true, cost: 62000, choices: [{ label: "-> The education was worth it", next: "root" }], action: function(g) { return Object.assign({}, g, { lady: (g.lady||[]).concat(["Chateau Wine Tour"]) }); } }; }
 function nodeLadyReno(gs) { var h = gs.house ? "The " + gs.houseName + " gets" : "The house gets"; return { text: h + " the renovation it deserved. No budget conversation — that was the brief. The architect heard you. Six months later you walk through it and feel the satisfaction of a thing done properly.", outcome: true, cost: 180000, choices: [{ label: "-> Done properly or not at all", next: "root" }], action: function(g) { return Object.assign({}, g, { lady: (g.lady||[]).concat(["Home Renovation"]) }); } }; }
 
+
+// ── BUY THE BUSINESS ARC ─────────────────────────────────
+function nodeBuyBusiness(gs) {
+  var intro = gs.quitStyle === "manure"
+    ? "Greg sent you a bill for $14,800. You framed it. Steve has been running the place in all but name for months. Greg won't listen to him. The team is falling apart. You know exactly what to do."
+    : "Steve has been keeping you posted. The place is struggling. Greg won't take advice from anyone. The team misses having someone worth following. Two million dollars. One conversation with a solicitor.";
+  return {
+    text: intro,
+    choices: [
+      { label: "💼 Buy the business — $2,000,000", next: "buy_biz_purchase", cost: 2000000 },
+      { label: "← Not yet", next: "invest" },
+    ]
+  };
+}
+
+function nodeBuyBizPurchase(gs) {
+  var arrival = gs.car
+    ? "You pull into the car park in the " + gs.carName + ". The same car park. The same building. Nothing has changed except everything."
+    : "You pull into the car park. The same building. Nothing has changed except everything.";
+  return {
+    text: "The solicitor takes three weeks. Settlement is on a Thursday. " + arrival + " Steve meets you at reception. He's trying not to smile. Greg is in his office. He doesn't know yet.",
+    outcome: true, cost: 2000000,
+    choices: [{ label: "→ Fire Greg", next: "buy_biz_fire_greg" }],
+    action: function(g) { return Object.assign({}, g, { hasBoughtBusiness: true }); }
+  };
+}
+
+function nodeBuyBizFireGreg(gs) {
+  var manure = gs.quitStyle === "manure";
+  return {
+    text: manure
+      ? "You walk in. Greg looks up. You sit down across from him — the same desk where he once gave you a performance review about your attitude. You say: 'Greg. The business has new ownership effective today. Your position is redundant.' He opens his mouth. You slide the termination letter across. 'The cleanup bill is in there. We've called it even.' He goes pale. You stand up. You leave. Steve is waiting in the corridor."
+      : "You walk into Greg's office. He looks confused — you're not on his calendar. You sit down. 'Greg. The business has new ownership effective today. Your position is made redundant.' He starts to speak. You put the letter on the desk. 'HR will walk you through it.' You stand up. You close the door gently on the way out. That's the whole thing.",
+    outcome: true,
+    choices: [{ label: "→ Hand the keys to Steve", next: "buy_biz_steve" }],
+  };
+}
+
+function nodeBuyBizSteve(gs) {
+  var manure = gs.quitStyle === "manure";
+  return {
+    text: manure
+      ? "Steve shakes your hand in the corridor. He already has a list. Three pages, front and back, of things he has been waiting to fix. The business turns over inside six months. $8,500 a month arrives like clockwork. The manure cost $14,800. At month two, you've earned it back. At month three you stop thinking about it. Greg is managing a service station in Hinterville. You hear this through a mutual friend and feel completely nothing."
+      : "Steve takes the keys like he's been waiting for them, which he has. He's been waiting for two years. He has a plan. Three pages of it. $8,500 a month. The team stays. The business grows quietly. Steve sends you a photo of the staff Christmas party six months later. Everyone is smiling. You put it on your phone and occasionally show people without explaining why.",
+    outcome: true, passiveAdd: 8500,
+    choices: [{ label: "→ Done. Properly done.", next: "root" }],
+    action: function(g) { return Object.assign({}, g, {
+      investments: g.investments.concat([{ type: "The Old Business (Steve)", amount: 2000000, passiveIncome: 8500 }]),
+      givens: g.givens.concat(["gave Steve the keys"])
+    }); }
+  };
+}
+
 // ── EXTEND NODES MAP ─────────────────────────────────────
 (function() {
   var extraNodes = {
@@ -2777,6 +2836,10 @@ function nodeLadyReno(gs) { var h = gs.house ? "The " + gs.houseName + " gets" :
     lady_jewels: nodeLadyJewels, lady_paris: nodeLadyParis, lady_spa: nodeLadySpa,
     lady_art: nodeLadyArt, lady_wine: nodeLadyWine, lady_reno: nodeLadyReno,
     inv_political: nodeInvPolitical,
+    buy_business: nodeBuyBusiness,
+    buy_biz_purchase: nodeBuyBizPurchase,
+    buy_biz_fire_greg: nodeBuyBizFireGreg,
+    buy_biz_steve: nodeBuyBizSteve,
   };
   Object.assign(NODES, extraNodes);
 })();
@@ -3012,6 +3075,66 @@ function App() {
     }, 4000);
   }, [gameState.hasMadePoliticalDonation]);
 
+  // ── FORGOT TO QUIT — GREG TEXTS ──
+  useEffect(function() {
+    if (gameState.quitJob) return; // already quit, no need
+    if (screen !== "game") return;
+
+    // Greg text 1 — Day 2 (daysElapsed >= 2)
+    if (daysElapsed >= 2 && shownNotifsRef.current.indexOf("greg_text_1") < 0) {
+      shownNotifsRef.current = shownNotifsRef.current.concat(["greg_text_1"]);
+      setPendingNotif({
+        id: "greg_text_1", type:"sms", tier:"neutral",
+        from:"Greg (Work)", preview:"Hey mate, just checking in...",
+        body:"Hey mate, just checking in — you were supposed to be in at 8. It's 10am and nobody has heard from you. Everything okay? Give me a call when you get this.\n\n— Greg",
+        acceptLabel:"Quit now — send resignation", rejectLabel:"Leave on read",
+        quitJobTrigger: true,
+        onAccept:{ cost:0, passiveAdd:0, msg:"Resignation sent. Greg reads it at 10:47am. You are watching the market." },
+        onReject:{ msg:"Left on read. Greg has seen the tick go blue." }
+      });
+      return;
+    }
+
+    // Greg text 2 — Day 5 (only if text 1 was rejected)
+    if (daysElapsed >= 5 && shownNotifsRef.current.indexOf("greg_text_1") >= 0 && shownNotifsRef.current.indexOf("greg_text_2") < 0) {
+      shownNotifsRef.current = shownNotifsRef.current.concat(["greg_text_2"]);
+      setPendingNotif({
+        id: "greg_text_2", type:"sms", tier:"borderline",
+        from:"Greg (Work)", preview:"This isn't a wellness check anymore...",
+        body:"I'm going to need you to come in and have a conversation. We have covered your shifts for five days. HR is involved now. This is not a wellness check anymore.\n\nI need a response today.\n\n— Greg",
+        acceptLabel:"Quit — send it now", rejectLabel:"Block Greg",
+        quitJobTrigger: true,
+        blockGregTrigger: true,
+        onAccept:{ cost:0, passiveAdd:0, msg:"Resignation sent. Two lines. No explanation. Greg forwards it to HR immediately." },
+        onReject:{ msg:"Greg is blocked. Somewhere across town he is staring at a phone that now says 'Message Failed to Deliver'." }
+      });
+      return;
+    }
+  }, [daysElapsed, gameState.quitJob, screen]);
+
+  // ── STEVE'S TEXT — fires 3 weeks after Greg blocked OR after manure quit ──
+  useEffect(function() {
+    if (gameState.hasBoughtBusiness) return;
+    if (gameState.steveContacted) return;
+    if (screen !== "game") return;
+    var gregBlocked = shownNotifsRef.current.indexOf("greg_blocked") >= 0;
+    var manureQuit = gameState.quitStyle === "manure" && gameState.quitJob;
+    if (!gregBlocked && !manureQuit) return;
+    // Steve texts after ~3 game weeks (21 days)
+    if (daysElapsed < 21) return;
+    if (shownNotifsRef.current.indexOf("steve_text") >= 0) return;
+    shownNotifsRef.current = shownNotifsRef.current.concat(["steve_text"]);
+    setPendingNotif({
+      id: "steve_text", type:"sms", tier:"legit",
+      from:"Steve", preview:"Mate. Since you left the place has gone sideways...",
+      body:"Mate.\n\nSince you left the place has gone sideways. Greg won't listen to anyone. Half the team is looking for other jobs. I keep telling him what needs fixing — he won't hear it.\n\nI know it's a big ask but... I wish you could buy the place. We'd make it work. The whole team would. Anyway. Hope you're doing well out there.\n\n— Steve",
+      acceptLabel:"Tell Steve you're interested", rejectLabel:"Not right now mate",
+      steveContactTrigger: true,
+      onAccept:{ cost:0, passiveAdd:0, msg:"You text Steve back. Three words: 'Get a valuation.' Steve replies in forty seconds with a thumbs up and then immediately a spreadsheet he clearly had ready." },
+      onReject:{ msg:"Steve gets it. He doesn't push. He just replies 'No worries mate. Offer stands.' and goes back to work." }
+    });
+  }, [daysElapsed, gameState.quitStyle, gameState.quitJob, gameState.hasBoughtBusiness, gameState.steveContacted, screen]);
+
   // ── WIN CONDITION CHECKS ──
   useEffect(function() {
     if (screen !== "game") return;
@@ -3208,6 +3331,24 @@ function App() {
       setNotifResult({msg:won?oa.winMsg:oa.loseMsg,cost:won?0:stake,gain:won?Math.round(stake*oa.winMultiplier):0,isGamble:true,won:won});
       return;
     }
+    // Quit job trigger (Greg texts)
+    if(notif.quitJobTrigger) {
+      setGameState(function(gs){ return Object.assign({},gs,{quitJob:true,quitStyle:gs.quitStyle||"polite"}); });
+      setNotifResult({msg:notif.onAccept.msg, cost:0, passiveAdd:0});
+      return;
+    }
+    // Block Greg trigger
+    if(notif.blockGregTrigger && !notif.quitJobTrigger) {
+      shownNotifsRef.current = shownNotifsRef.current.concat(["greg_blocked"]);
+      setNotifResult({msg:notif.onReject ? notif.onReject.msg : "Greg is blocked.", cost:0, passiveAdd:0});
+      return;
+    }
+    // Steve contact trigger
+    if(notif.steveContactTrigger){
+      setGameState(function(gs){ return Object.assign({},gs,{steveContacted:true}); });
+      setNotifResult({msg:notif.onAccept.msg, cost:0, passiveAdd:0});
+      return;
+    }
     if(notif.politicoTrigger){
       var sn=pickSonName(); setGameState(function(gs){return Object.assign({},gs,{sonName:sn});});
       setNodeKey("politico_root");
@@ -3231,7 +3372,17 @@ function App() {
     setNotifResult({msg:oa2.msg,cost:oa2.cost||0,passiveAdd:oa2.passiveAdd||0});
   }, [pendingNotif]);
 
-  var handleNotifReject = useCallback(function(){setPendingNotif(null);},[]);
+  var handleNotifReject = useCallback(function(){
+    if(pendingNotif && pendingNotif.blockGregTrigger) {
+      shownNotifsRef.current = shownNotifsRef.current.concat(["greg_blocked"]);
+      setNotifResult({msg:"Greg is blocked. Somewhere across town he is staring at a phone that says 'Message Failed to Deliver'.", cost:0, passiveAdd:0});
+    } else if(pendingNotif && pendingNotif.steveContactTrigger) {
+      setNotifResult({msg:"Steve gets it. He replies: 'No worries mate. Offer stands.' and goes back to work.", cost:0, passiveAdd:0});
+    } else if(pendingNotif && pendingNotif.onReject && pendingNotif.onReject.msg) {
+      setNotifResult({msg:pendingNotif.onReject.msg, cost:0, passiveAdd:0});
+    }
+    setPendingNotif(null);
+  },[pendingNotif]);
   var handleNotifResultDone = useCallback(function(){setNotifResult(null);},[]);
   var handleBorrow = useCallback(function(amt){setCash(function(c){return c+amt;});setDebt(function(d){return d+amt;});},[]);
   var handleVidoBorrow = useCallback(function(amt){setCash(function(c){return c+amt;});setVidoDebt(function(d){return d+amt;});setVidoWeeks(0);},[]);
