@@ -780,6 +780,16 @@ function nodeHolCruise(gs) { return { text: "World cruise. Owner's suite. 120 ni
 function nodeHolJapan(gs) { return { text: "Japan. Three weeks, ryokans, bullet trains, wagyu that dissolves." + (gs.house === "rural" ? " You come home to 200 acres and feel the contrast sharply." : "") + " You spend $8,000 on kitchen knives. Zero regrets.", outcome: true, cost: 45000, choices: [{ label: "→ What's next?", next: "root" }], action: function(g) { return Object.assign({}, g, { holidays: g.holidays.concat(["Japan"]) }); } }; }
 function nodeHolVegas(gs) { return { text: "Vegas. High roller suite, front-row shows, the full catastrophe." + (gs.car ? " You miss the " + gs.carName + " immediately." : "") + " Day 3 you're $180,000 down at the baccarat table. The house always wins.", outcome: true, cost: 60000, bonusLoss: 180000, choices: [{ label: "→ What's next?", next: "root" }], action: function(g) { return Object.assign({}, g, { holidays: g.holidays.concat(["Vegas (ouch)"]) }); } }; }
 
+function nodeInvPolitical(gs) {
+  return {
+    text: "There's a dinner. Black tie, $500,000 table, strictly by introduction only. The party hierarchy is there. The shadow ministers who'll be ministers after the next election are there. A senior advisor pulls you aside over dessert and says, very quietly, 'There's someone you should meet.' His name is Murray Cresswell MP.",
+    outcome: true,
+    cost: 500000,
+    choices: [{ label: "→ Murray Cresswell. Interesting.", next: "root" }],
+    action: function(g) { return Object.assign({}, g, { hasMadePoliticalDonation: true, legacyScore: (g.legacyScore||0) - 10 }); }
+  };
+}
+
 function nodeInvest(gs) {
   var pct = Math.round((gs.passiveIncome / (gs.luxuryTarget || LUXURY_TARGET_MAX)) * 100);
   return {
@@ -790,6 +800,7 @@ function nodeInvest(gs) {
       { label: "📊 Managed fund / ETF — set and forget", next: "inv_etf" },
       { label: "🏦 Term deposit — 4.5% p.a., zero risk", next: "inv_term" },
       { label: "🏢 Buy a small business", next: "inv_business" },
+      ...(gs.hasMadePoliticalDonation ? [] : [{ label: "🏛️ Political donation — open the right doors — $500,000", next: "inv_political", cost: 500000 }]),
       { label: "🧓 Top up superannuation", next: "inv_super" },
       { label: "💎 Your mate Craig's crypto startup", next: "inv_crypto" },
     ],
@@ -1332,6 +1343,7 @@ const NODES = {
   hol_europe: nodeHolEurope, hol_maldives: nodeHolMaldives, hol_cruise: nodeHolCruise,
   hol_japan: nodeHolJapan, hol_vegas: nodeHolVegas,
   invest: nodeInvest,
+  inv_political: nodeInvPolitical,
   inv_property: nodeInvProperty,
   inv_prop_bne: nodeInvPropBne, inv_prop_reg: nodeInvPropReg,
   inv_prop_syd: nodeInvPropSyd, inv_prop_hol: nodeInvPropHol,
@@ -3076,11 +3088,7 @@ function GameCore(props) {
           if (gn) { setPendingNotif(gn); return; }
         }
         // Politico approach after donation
-        if (gs.hasMadePoliticalDonation && (gs.politicoPath||0) === 0 && shownNotifsRef.current.indexOf("politico_approach") < 0) {
-          shownNotifsRef.current = shownNotifsRef.current.concat(["politico_approach"]);
-          var pNotif = NOTIFICATIONS.filter(function(n){ return n.id === "politico_approach"; })[0];
-          if (pNotif) { setPendingNotif(pNotif); return; }
-        }
+        // politico_approach now handled by dedicated useEffect
         // Politico random events
         if ((gs.politicoPath||0) >= 1 && (gs.politicoPath||0) < 99 && Math.random() < 0.18) {
           var pevt = POLITICO_EVENTS[Math.floor(Math.random() * POLITICO_EVENTS.length)](gs);
@@ -3160,6 +3168,25 @@ function GameCore(props) {
       if (gn) setTimeout(function(){ setPendingNotif(gn); }, 2000);
     }
   }, [gameState.restrainedChoices, gameState.billionaireMode]);
+
+  // ── POLITICAL DONATION TRIGGERED NOTIFICATION ──
+  useEffect(function() {
+    if (!gameState.hasMadePoliticalDonation) return;
+    if ((gameState.politicoPath||0) > 0) return; // already in the arc
+    if (shownNotifsRef.current.indexOf("politico_approach") >= 0) return;
+    shownNotifsRef.current = shownNotifsRef.current.concat(["politico_approach"]);
+    // Murray calls within 4 seconds of the donation being made
+    setTimeout(function() {
+      setPendingNotif({
+        id: "politico_approach", type:"call", tier:"borderline",
+        from:"Private number", preview:"A mutual friend suggested I reach out...",
+        body:"Good evening. You don't know me — but we have mutual friends. I understand you attended the dinner last week and that you've been making some thoughtful investments in the region. I'd like to have dinner. Just a conversation. I think there are opportunities that would interest you. The Wharf Restaurant, Friday. My office will make the reservation. My name is Murray Cresswell.",
+        acceptLabel:"Accept — Friday at The Wharf", rejectLabel:"Politely decline",
+        politicoTrigger: true,
+        onAccept: { cost:0, passiveAdd:0, msg:"The dinner is excellent. Murray Cresswell MP is charming, unhurried, and very clear about what he wants. You drive home thinking about it for three days. Then you go back." }
+      });
+    }, 4000);
+  }, [gameState.hasMadePoliticalDonation]);
 
   // ── WIN CONDITION CHECKS ──
   useEffect(function() {
