@@ -853,11 +853,12 @@ function nodeBillRoot(gs) {
     { label: "📊 Insider intelligence — act on it", next: "bill_insider" },
     { label: "🏛️ Political solution — council planning approval", next: "bill_political" },
     { label: "👥 Poach an entire engineering team", next: "bill_poach" },
-    { label: "📜 Licence your IP — pure passive income", next: "bill_licence" },
-    { label: "🌟 Staff equity scheme", next: "bill_equity" },
-    { label: "🚀 IPO — go public", next: "bill_ipo" },
-    { label: "❤️ The foundation — give it all away", next: "bill_foundation" },
   ];
+  // One-time only options — gated by flags
+  if (!gs.hasLicenced) choices.push({ label: "📜 Licence your IP — pure passive income", next: "bill_licence" });
+  if (!gs.hasEquity) choices.push({ label: "🌟 Staff equity scheme", next: "bill_equity" });
+  if (!gs.hasIpod) choices.push({ label: "🚀 IPO — go public", next: "bill_ipo" });
+  choices.push({ label: "❤️ The foundation — give it all away", next: "bill_foundation" });
   var text = (gs.billNetWorth || 0) === 0
     ? "The meeting with Richard changed your thinking. The lottery money isn't a windfall — it's seed capital. What do you build first?"
     : "Net worth: " + nw + ". Dubious index: " + dubious + ". The empire is taking shape. What's the next move?";
@@ -981,11 +982,11 @@ function nodeBillEquity(gs) {
 }
 function nodeBillEquityDo(gs) {
   return { text: "Equity documents signed on a Thursday afternoon. You watch each person read the number — their number — and you see exactly the moment it lands. One of them cries. She's been here since month three. This is the best meeting you've ever been in.", outcome: true, choices: [{ label: "→ What's next?", next: "bill_root" }],
-    action: function(g) { return Object.assign({}, g, { dubiousScore: Math.max(-100, (g.dubiousScore||0) - 20) }); } };
+    action: function(g) { return Object.assign({}, g, { dubiousScore: Math.max(-100, (g.dubiousScore||0) - 20), hasEquity: true }); } };
 }
 function nodeBillEquityBonus(gs) {
   return { text: "Cash bonuses. Generous ones. Tax hits them hard but the gesture lands well. Three of them use the money to pay off mortgages. You keep 100% of the equity. The company is worth more undiluted. This is the correct financial decision.", outcome: true, choices: [{ label: "→ What's next?", next: "bill_root" }],
-    action: function(g) { return Object.assign({}, g, { billNetWorth: (g.billNetWorth||0)+5000000 }); } };
+    action: function(g) { return Object.assign({}, g, { billNetWorth: (g.billNetWorth||0)+5000000, hasEquity: true }); } };
 }
 
 function nodeBillIpo(gs) {
@@ -999,7 +1000,8 @@ function nodeBillIpo(gs) {
 }
 function nodeBillIpoDo(gs) {
   return { text: "The IPO prices at $4.20 per share. The NatX bell rings. Your wealth on paper: $190M. The Camry is in the car park of the NatX building. A photographer from the the Gazette wants a shot with you and the car. You agree. The photo runs with the caption 'Billionaire's $32,000 car'. Your phone doesn't stop for three days.", outcome: true, choices: [{ label: "→ What's next?", next: "bill_root" }],
-    action: function(g) { return Object.assign({}, g, { billNetWorth: (g.billNetWorth||0)+190000000 }); } };
+    cashAdd: 5000000,
+    action: function(g) { return Object.assign({}, g, { billNetWorth: (g.billNetWorth||0)+190000000, hasIpod: true }); } };
 }
 function nodeBillIpoPass(gs) {
   return { text: "You decline the float. The banks are baffled. You keep 100% control. The company keeps compounding. You don't need the liquidity — you need the clarity. Richard Paulson sends a one-line email: 'Correct decision.' You print it and put it next to the car keys.", outcome: true, choices: [{ label: "→ What's next?", next: "bill_root" }],
