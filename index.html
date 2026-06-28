@@ -2344,8 +2344,8 @@ function HUD(props) {
   var y = Math.floor(weeksElapsed / 52), w = weeksElapsed % 52;
   var low = cash < winAmount * 0.08;
   var daysEl = daysElapsed;
-  return React.createElement("div", { style: { position:"sticky", top:0, zIndex:100, background:"linear-gradient(to bottom," + C.black + "," + C.dark + ")", borderBottom:"1px solid " + C.gold + "38", padding:"0.7rem 1.2rem" } },
-    React.createElement("div", { style: { display:"flex", flexWrap:"wrap", gap:"0.75rem 1.5rem", alignItems:"center", justifyContent:"space-between", maxWidth:"960px", margin:"0 auto" } },
+  return React.createElement("div", { style: { position:"sticky", top:0, zIndex:100, background:"linear-gradient(to bottom," + C.black + "," + C.dark + ")", borderBottom:"1px solid " + C.gold + "38", padding:"0.5rem 0.75rem" } },
+    React.createElement("div", { style: { display:"flex", flexWrap:"nowrap", gap:"0.5rem 1rem", alignItems:"center", justifyContent:"space-between", overflowX:"auto", WebkitOverflowScrolling:"touch" } },
       React.createElement("div", { style: { textAlign:"center" } },
         React.createElement("div", { style: { fontSize:"0.6rem", letterSpacing:"0.2em", color:C.dim, textTransform:"uppercase", marginBottom:"0.1rem" } }, "Cash Balance"),
         React.createElement("div", { style: { fontSize:"1.45rem", fontWeight:"bold", color:low ? C.red : C.gold, animation:low ? "warn 1.4s ease-in-out infinite" : "none" } },
@@ -2383,11 +2383,20 @@ function HUD(props) {
         React.createElement("div", { style: { fontSize:"0.9rem", color:C.white, fontWeight:"bold" } }, formatClock(daysEl)),
         React.createElement("div", { style: { fontSize:"0.55rem", color:C.dim } }, formatSurvivedLabel(daysEl) + " free")
       ),
-      onHome && React.createElement("button", {
-        onClick: onHome,
-        title: "Menu / Check phone",
-        style: { background:"transparent", border:"1px solid " + C.gold + "44", borderRadius:"6px", padding:"0.4rem 0.7rem", color:C.gold, fontSize:"1.1rem", cursor:"pointer", lineHeight:1, flexShrink:0 }
-      }, "📱")
+      React.createElement("div", { style:{ position:"relative", flexShrink:0 } },
+        React.createElement("button", {
+          onClick: function() { if (props.onInbox) props.onInbox(); else if (onHome) onHome(); },
+          title: "Messages / Menu",
+          style: { background:"transparent", border:"1px solid " + C.gold + "44", borderRadius:"6px", padding:"0.4rem 0.7rem", color:C.gold, fontSize:"1.1rem", cursor:"pointer", lineHeight:1 }
+        }, "📱"),
+        props.inboxCount > 0 && React.createElement("span", { style:{
+          position:"absolute", top:"-5px", right:"-5px",
+          background:"#C0392B", color:"#fff", borderRadius:"50%",
+          width:"16px", height:"16px", fontSize:"0.58rem",
+          display:"flex", alignItems:"center", justifyContent:"center",
+          fontWeight:"bold", pointerEvents:"none"
+        }}, props.inboxCount > 9 ? "9+" : String(props.inboxCount))
+      )
     )
   );
 }
@@ -2960,6 +2969,77 @@ function PassiveGlowOverlay(props) {
   );
 }
 
+
+// ── NOTIFICATION INBOX ───────────────────────────────────
+function NotificationInbox(props) {
+  var inbox = props.inbox || [];
+  var queue = props.queue || [];
+  var onClose = props.onClose;
+  var count = queue.length + inbox.length;
+
+  return React.createElement("div", {
+    style:{ position:"fixed", inset:0, zIndex:550,
+      display:"flex", alignItems:"flex-start", justifyContent:"flex-end",
+      padding:"4.5rem 0.5rem 0", background:"rgba(0,0,0,0.6)" },
+    onClick: onClose
+  },
+    React.createElement("div", {
+      style:{ width:"100%", maxWidth:"420px", background:"#111",
+        border:"1px solid #C9A84C33", borderRadius:"10px", overflow:"hidden",
+        maxHeight:"70vh", display:"flex", flexDirection:"column",
+        boxShadow:"0 8px 40px rgba(0,0,0,0.9)", animation:"eIn 0.2s ease forwards" },
+      onClick: function(e){ e.stopPropagation(); }
+    },
+      React.createElement("div", { style:{
+        padding:"0.75rem 1rem", borderBottom:"1px solid #222",
+        display:"flex", justifyContent:"space-between", alignItems:"center"
+      }},
+        React.createElement("div", { style:{ fontSize:"0.75rem", color:"#C9A84C", letterSpacing:"0.15em", textTransform:"uppercase" } },
+          "Messages" + (count > 0 ? " (" + count + ")" : "")
+        ),
+        React.createElement("button", { onClick:onClose,
+          style:{ background:"none", border:"none", color:"#555", fontSize:"1rem", cursor:"pointer" }
+        }, "✕")
+      ),
+      React.createElement("div", { style:{ overflowY:"auto", flex:1 } },
+        count === 0
+          ? React.createElement("div", { style:{ padding:"2rem", textAlign:"center", color:"#444", fontSize:"0.85rem" } },
+              "No messages"
+            )
+          : React.createElement(React.Fragment, null,
+              // Active queue items
+              queue.map(function(notif, i) {
+                return React.createElement("div", { key:i, style:{
+                  padding:"0.85rem 1rem", borderBottom:"1px solid #1a1a1a",
+                  background: i===0 ? "#1a1a00" : "transparent"
+                }},
+                  React.createElement("div", { style:{ display:"flex", justifyContent:"space-between", marginBottom:"0.2rem" } },
+                    React.createElement("div", { style:{ fontSize:"0.78rem", color:"#f5f3ee", fontWeight:"bold" } }, notif.from || "Message"),
+                    i===0 && React.createElement("div", { style:{ fontSize:"0.6rem", color:"#C9A84C", textTransform:"uppercase", letterSpacing:"0.1em" } }, "Pending")
+                  ),
+                  React.createElement("div", { style:{ fontSize:"0.72rem", color:"#888", lineHeight:1.5 } },
+                    notif.preview || (notif.body ? notif.body.substring(0,80)+"..." : "")
+                  )
+                );
+              }),
+              // Archived inbox items
+              inbox.map(function(notif, i) {
+                return React.createElement("div", { key:"i"+i, style:{
+                  padding:"0.85rem 1rem", borderBottom:"1px solid #1a1a1a",
+                  opacity:0.5
+                }},
+                  React.createElement("div", { style:{ fontSize:"0.78rem", color:"#888" } }, notif.from || "Message"),
+                  React.createElement("div", { style:{ fontSize:"0.72rem", color:"#555", lineHeight:1.5 } },
+                    notif.preview || ""
+                  )
+                );
+              })
+            )
+      )
+    )
+  );
+}
+
 // ── VIDO COIN FLIP ────────────────────────────────────────
 function VidoCoinFlip(props) {
   var playerName = props.playerName || "the Player";
@@ -3091,7 +3171,24 @@ function App() {
   var outcomeS = useState(null); var pendingOutcome = outcomeS[0], setPendingOutcome = outcomeS[1];
   var gsS = useState(function() { return Object.assign(initialGS(), { bigToys:[], lady:[] }); });
   var gameState = gsS[0], setGameState = gsS[1];
-  var notifS = useState(null); var pendingNotif = notifS[0], setPendingNotif = notifS[1];
+  var notifQueueS = useState([]); var notifQueue = notifQueueS[0], setNotifQueue = notifQueueS[1];
+  var pendingNotif = notifQueue.length > 0 ? notifQueue[0] : null;
+  var inboxS = useState([]); var inbox = inboxS[0], setInbox = inboxS[1];
+  var showInboxS = useState(false); var showInbox = showInboxS[0], setShowInbox = showInboxS[1];
+
+  function setPendingNotif(notif) {
+    if (!notif) {
+      // Dismiss current — move to next in queue
+      setNotifQueue(function(q) { return q.slice(1); });
+    } else {
+      // Add to queue
+      setNotifQueue(function(q) {
+        // Don't add duplicates
+        if (q.some(function(n){ return n.id && n.id === notif.id; })) return q;
+        return q.concat([notif]);
+      });
+    }
+  }
   var notifResS = useState(null); var notifResult = notifResS[0], setNotifResult = notifResS[1];
   var bjS = useState(false); var showBlackjack = bjS[0], setShowBlackjack = bjS[1];
   var debtS = useState(0); var debt = debtS[0], setDebt = debtS[1];
@@ -3500,6 +3597,8 @@ function App() {
   }, [pendingNotif]);
 
   var handleNotifReject = useCallback(function(){
+    // Archive to inbox before dismissing
+    if(pendingNotif) setInbox(function(b){ return [pendingNotif].concat(b).slice(0,20); });
     if(pendingNotif && pendingNotif.blockGregTrigger) {
       shownNotifsRef.current = shownNotifsRef.current.concat(["greg_blocked"]);
       setNotifResult({msg:"Greg is blocked. Somewhere across town he is staring at a phone that says 'Message Failed to Deliver'.", cost:0, passiveAdd:0});
@@ -3598,13 +3697,25 @@ function App() {
 
   return React.createElement("div",{style:{minHeight:"100vh",background:C.black,color:C.white,fontFamily:"Georgia,serif"}},
     React.createElement("style",null,CSS + "@keyframes passiveGlow{0%{opacity:0}15%{opacity:1}70%{opacity:1}100%{opacity:0}} @keyframes passiveSlide{0%{opacity:0;transform:translateY(8px)}15%{opacity:1;transform:translateY(0)}70%{opacity:1;transform:translateY(0)}100%{opacity:0;transform:translateY(-12px)}} @keyframes edgeGlow{0%{opacity:0}20%{opacity:1}65%{opacity:1}100%{opacity:0}} @keyframes coinSpin{0%{transform:rotateY(0deg)}50%{transform:rotateY(90deg)}100%{transform:rotateY(180deg)}}"),
-    React.createElement(HUD,{cash:cash,passiveIncome:passiveIncome,weeksElapsed:weeksElapsed,daysElapsed:daysElapsed,winAmount:winAmount,debt:debt,vidoDebt:vidoDebt,gameState:gameState,onHome:handleHome}),
+    React.createElement(HUD,{cash:cash,passiveIncome:passiveIncome,weeksElapsed:weeksElapsed,daysElapsed:daysElapsed,winAmount:winAmount,debt:debt,vidoDebt:vidoDebt,gameState:gameState,onHome:handleHome,onInbox:function(){setShowInbox(true);},inboxCount:notifQueue.length+inbox.length}),
     React.createElement("div",{style:{minHeight:"calc(100vh - 80px)",paddingBottom:"3rem"}},content),
     showBillFinale&&React.createElement(BillionaireScreen,{gameState:gameState,netWorth:gameState.billNetWorth||0,onRestart:function(){buildScorecard("billionaire");setScreen("ended");}}),
     pendingNotif&&React.createElement(NotificationPopup,{notif:pendingNotif,onAccept:handleNotifAccept,onReject:handleNotifReject}),
-    showFinance&&React.createElement(FinanceModal,{cash:cash,passiveIncome:passiveIncome,debt:debt,vidoDebt:vidoDebt,vidoWeeks:vidoWeeks,investments:gameState.investments,context:showFinance,onBorrow:handleBorrow,onVidoBorrow:handleVidoBorrow,onRepay:handleRepay,onSell:handleSellAsset,onClose:function(){setShowFinance(null);}}),
+    showFinance&&React.createElement(FinanceModal,{cash:cash,passiveIncome:passiveIncome,debt:debt,vidoDebt:vidoDebt,vidoWeeks:vidoWeeks,investments:gameState.investments,context:showFinance,onBorrow:handleBorrow,onVidoBorrow:handleVidoBorrow,onRepay:handleRepay,onSell:handleSellAsset,onClose:function(){
+          setShowFinance(null);
+          // If in tycoon mode, ensure dashboard is visible after finance closes
+          if(gameState.tycoonMode||gameState.billionaireMode) setShowTycoon(true);
+        }}),
     showBlackjack&&React.createElement(BlackjackGame,{cash:cash,onFinish:handleBjFinish}),
     passiveGlow&&React.createElement(PassiveGlowOverlay,{amount:passiveGlow.amount,message:passiveGlow.message}),
+    showInbox&&React.createElement(NotificationInbox,{
+      inbox:inbox, queue:notifQueue,
+      onClose:function(){
+        setShowInbox(false);
+        // If no active notification showing, go home
+        if(notifQueue.length===0) handleHome();
+      }
+    }),
     showVidoCoin&&React.createElement(VidoCoinFlip,{playerName:playerName,vidoDebt:vidoCoinDebt,
       onSurvive:function(){setVidoDebt(vidoCoinDebt);vidoDebtRef.current=vidoCoinDebt;setVidoWeeks(0);setShowVidoCoin(false);setPendingEvent({text:"🔪 Six months. Vido pockets the coin. "+fmtFull(vidoCoinDebt)+" outstanding. The clock is already running.",type:"bad",cost:0});},
       onDeath:function(){setShowVidoCoin(false);setScreen("tombstone");}
