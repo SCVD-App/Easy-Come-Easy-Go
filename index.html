@@ -3501,7 +3501,11 @@ function App() {
     if(acq.annualCost>0)setAnnualCosts(function(a){return a+acq.annualCost;});
     setGameState(function(gs){return Object.assign({},gs,{legacyScore:(gs.legacyScore||0)+(acq.legacyDelta||0),tycoonAssets:(gs.tycoonAssets||[]).concat([{id:acq.id,icon:acq.icon,name:acq.name,passiveIncome:acq.passiveIncome,assetValue:acq.assetValue}])});});
   },[]);
-  var handleEnterTycoon = useCallback(function(){setGameState(function(gs){return Object.assign({},gs,{tycoonMode:true});});setTierScreen("tycoon_chase");},[]);
+  var handleEnterTycoon = useCallback(function(){
+    setGameState(function(gs){return Object.assign({},gs,{tycoonMode:true});});
+    setShowTycoon(true);
+    setTierScreen("tycoon_chase");
+  },[]);
   var handleSailOff = useCallback(function(tier){setSailTier(tier||"suburban");setTierScreen("sailoff");setTimeout(function(){buildScorecard(tier||"sailoff");setScreen("ended");},500);},[passiveIncome,winAmount]);
 
   // ── REVEAL SCREEN ──
@@ -3544,11 +3548,20 @@ function App() {
 
   // ── TIER SCREENS ──
   if(tierScreen==="suburban"){return React.createElement(React.Fragment,null,React.createElement("style",null,CSS),React.createElement(SuburbanLegendScreen,{passiveIncome:passiveIncome,weeksElapsed:weeksElapsed,winAmount:winAmount,gameState:gameState,onSailOff:function(){handleSailOff("suburban");},onKeepGoing:handleEnterTycoon,onRestart:function(){buildScorecard("suburban");setScreen("ended");}}));}
-  if(tierScreen==="mogul"){return React.createElement(React.Fragment,null,React.createElement("style",null,CSS),React.createElement(CityMogulScreen,{passiveIncome:passiveIncome,weeksElapsed:weeksElapsed,totalAssets:totalAssets,gameState:gameState,onSailOff:function(){handleSailOff("mogul");},onKeepGoing:function(){setTierScreen("tycoon_chase");},onRestart:function(){buildScorecard("mogul");setScreen("ended");}}));}
+  if(tierScreen==="mogul"){return React.createElement(React.Fragment,null,React.createElement("style",null,CSS),React.createElement(CityMogulScreen,{passiveIncome:passiveIncome,weeksElapsed:weeksElapsed,totalAssets:totalAssets,gameState:gameState,onSailOff:function(){handleSailOff("mogul");},onKeepGoing:function(){
+    setGameState(function(gs){return Object.assign({},gs,{tycoonMode:true});});
+    setShowTycoon(true);
+    setTierScreen("tycoon_chase");
+  },onRestart:function(){buildScorecard("mogul");setScreen("ended");}}));}
   if(tierScreen==="tycoon"){return React.createElement(React.Fragment,null,React.createElement("style",null,CSS),React.createElement(TycoonScreen,{passiveIncome:passiveIncome,weeksElapsed:weeksElapsed,totalAssets:totalAssets,gameState:gameState,onRestart:function(){buildScorecard("tycoon");setScreen("ended");}}));}
   if(tierScreen==="sailoff"){return React.createElement(React.Fragment,null,React.createElement("style",null,CSS),React.createElement(SailOffScreen,{tier:sailTier,passiveIncome:passiveIncome,gameState:gameState,onRestart:function(){setScreen("reveal");setTierScreen("none");}}));}
 
   // ── MAIN GAME ──
+  // Force Tycoon Dashboard visible when in tycoon_chase mode
+  if(tierScreen === "tycoon_chase" && gameState.tycoonMode && !showTycoon) {
+    setShowTycoon(true);
+  }
+
   var content;
   if(notifResult){content=React.createElement(NotifResult,{msg:notifResult.msg,cost:notifResult.cost,gain:notifResult.gain||0,passiveAdd:notifResult.passiveAdd||0,isGamble:notifResult.isGamble,won:notifResult.won,onContinue:handleNotifResultDone});}
   else if(pendingEvent){content=React.createElement(EventCard,{event:pendingEvent,onContinue:handleEvent});}
