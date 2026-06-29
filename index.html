@@ -931,6 +931,7 @@ function initialGS() {
 
 function nodeRoot(gs) {
   const choices = [];
+  if (gs.tycoonMode || gs.billionaireMode) choices.push({ label: "💎 Return to Empire Dashboard", next: "__tycoon__" });
   if (!gs.quitJob) choices.push({ label: "💼 Quit the job", next: "quit_job" });
   choices.push({ label: gs.car ? "🚗 Buy another car" : "🚗 Buy a car", next: "buy_car" });
   if (!gs.house) choices.push({ label: "🏠 Buy a house", next: "buy_house" });
@@ -938,7 +939,9 @@ function nodeRoot(gs) {
   choices.push({ label: "📈 Invest", next: "invest" });
   choices.push({ label: "🎁 Be generous", next: "generosity" });
   const hasActed = gs.car || gs.house || gs.quitJob || gs.investments.length > 0 || gs.holidays.length > 0 || gs.givens.length > 0;
-  const text = gs.investments.length >= 2
+  const text = gs.tycoonMode || gs.billionaireMode
+    ? "Home base. The empire is running. What else needs doing?"
+    : gs.investments.length >= 2
     ? "The portfolio is growing. $30k/month passive is the goal — keep building."
     : gs.quitJob && gs.car && gs.house
     ? "You've got the house, the car, and the freedom. Now make sure the money outlasts you."
@@ -3811,6 +3814,7 @@ function App() {
     // If in tycoon/billionaire mode, collapse dashboard and go to root node
     if (gs && (gs.tycoonMode || gs.billionaireMode)) {
       setShowTycoon(false);
+      setTierScreen("none");
       setNodeKey(gs.billionaireMode ? "bill_root" : "root");
       setNodeHistory([]);
       return;
