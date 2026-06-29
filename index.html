@@ -3166,6 +3166,7 @@ function nodeFunStuff(gs) {
 function nodeBigBoysToys(gs) {
   return { text: (gs.bigToys||[]).length > 0 ? "The garage is getting interesting. What's next?" : "Sparkly depreciation. Every person's birthright.",
     choices: [
+      { label: "⛵ Fleming F65 — bluewater cruiser — $2,400,000", next: "toy_f65", cost: 2400000 },
       { label: "🚤 Prestige powerboat — $320,000", next: "toy_boat", cost: 320000 },
       { label: "🚁 Helicopter lessons + R44 — $280,000", next: "toy_heli", cost: 280000 },
       { label: "🏍️ Ducati Panigale V4 + leathers — $48,000", next: "toy_moto", cost: 48000 },
@@ -3173,6 +3174,9 @@ function nodeBigBoysToys(gs) {
       { label: "⛳ TopDrive Golf Simulator — $65,000", next: "toy_golf", cost: 65000 },
       { label: "🏎️ Track days — 12 sessions — $28,000", next: "toy_track", cost: 28000 },
     ] };
+}
+function nodeToyF65(gs) {
+  return { text: "The Fleming F65 arrives in Airlie Beach after a nine-month build slot. Teak decks, twin Volvo IPS drives, a master stateroom that makes the Laguna Heads house feel modest." + (gs.house === "canal" ? " She doesn't fit the canal jetty. You didn't think that through. A marina berth is arranged." : " A berth at the marina runs $4,200 a month.") + " Running costs — fuel, crew, insurance, maintenance — come in at $380,000 a year. You do not offer charter. This boat is not a business. She is the point of the whole exercise.", outcome: true, cost: 2400000, annualAdd: 380000, choices: [{ label: "→ She was worth every cent", next: "root" }], action: function(g) { return Object.assign({}, g, { bigToys: (g.bigToys||[]).concat(["Fleming F65"]), hasFleming: true }); } };
 }
 function nodeToyBoat(gs) { return { text: "Forty-two feet of fibreglass ego. The sunsets are better than anything you saw from a desk." + (gs.house === "canal" ? " The jetty at " + gs.houseName + " fits it perfectly." : ""), outcome: true, cost: 320000, annualAdd: 28000, choices: [{ label: "-> Worth it", next: "root" }], action: function(g) { return Object.assign({}, g, { bigToys: (g.bigToys||[]).concat(["Powerboat"]) }); } }; }
 function nodeToyHeli(gs) { return { text: "Sixty hours of lessons. The R44 is yours. The first solo flight over the Coastal region at sunrise — there are no words for it.", outcome: true, cost: 280000, annualAdd: 22000, choices: [{ label: "-> Worth every cent", next: "root" }], action: function(g) { return Object.assign({}, g, { bigToys: (g.bigToys||[]).concat(["Helicopter"]) }); } }; }
@@ -3256,7 +3260,7 @@ function nodeBuyBizSteve(gs) {
   var extraNodes = {
     fun_stuff: nodeFunStuff,
     big_boys_toys: nodeBigBoysToys,
-    toy_boat: nodeToyBoat, toy_heli: nodeToyHeli, toy_moto: nodeToyMoto,
+    toy_f65: nodeToyF65, toy_boat: nodeToyBoat, toy_heli: nodeToyHeli, toy_moto: nodeToyMoto,
     toy_guitars: nodeToyGuitars, toy_golf: nodeToyGolf, toy_track: nodeToyTrack,
     for_the_ladies: nodeForTheLadies,
     lady_jewels: nodeLadyJewels, lady_paris: nodeLadyParis, lady_spa: nodeLadySpa,
