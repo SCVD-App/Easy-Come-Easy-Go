@@ -2644,59 +2644,77 @@ function HUD(props) {
   var y = Math.floor(weeksElapsed / 52), w = weeksElapsed % 52;
   var low = cash < winAmount * 0.08;
   var daysEl = daysElapsed;
+
+  // Row 1: Cash | Passive | Time | Buttons
+  // Row 2: Progress bar + debt if any
   return React.createElement("div", { style: { position:"sticky", top:0, zIndex:100, background:"linear-gradient(to bottom," + C.black + "," + C.dark + ")", borderBottom:"1px solid " + C.gold + "38", padding:"0.5rem 0.75rem" } },
-    React.createElement("div", { style: { display:"flex", flexWrap:"nowrap", gap:"0.5rem 1rem", alignItems:"center", justifyContent:"space-between", overflowX:"auto", WebkitOverflowScrolling:"touch" } },
-      React.createElement("div", { style: { textAlign:"center" } },
-        React.createElement("div", { style: { fontSize:"0.6rem", letterSpacing:"0.2em", color:C.dim, textTransform:"uppercase", marginBottom:"0.1rem" } }, "Cash Balance"),
-        React.createElement("div", { style: { fontSize:"1.45rem", fontWeight:"bold", color:low ? C.red : C.gold, animation:low ? "warn 1.4s ease-in-out infinite" : "none" } },
+
+    // ── ROW 1 ──
+    React.createElement("div", { style: { display:"flex", alignItems:"center", justifyContent:"space-between", gap:"0.5rem", marginBottom:"0.4rem" } },
+
+      // Cash
+      React.createElement("div", { style: { textAlign:"center", flex:"1 1 0" } },
+        React.createElement("div", { style: { fontSize:"0.52rem", letterSpacing:"0.15em", color:C.dim, textTransform:"uppercase" } }, "Cash"),
+        React.createElement("div", { style: { fontSize:"1.25rem", fontWeight:"bold", color:low ? C.red : C.gold, animation:low ? "warn 1.4s ease-in-out infinite" : "none", lineHeight:1.1 } },
           React.createElement(AnimatedNumber, { value: Math.max(0, cash) })
         )
       ),
-      React.createElement("div", { style: { textAlign:"center" } },
-        React.createElement("div", { style: { fontSize:"0.6rem", letterSpacing:"0.2em", color:C.dim, textTransform:"uppercase", marginBottom:"0.1rem" } }, "If in Term Deposit"),
-        React.createElement("div", { style: { fontSize:"1.1rem", color:"#5ab4ff" } }, React.createElement(AnimatedNumber, { value: td, suffix:"/mo" })),
-        React.createElement("div", { style: { fontSize:"0.55rem", color:C.dim } }, "@ 4.5% p.a.")
+
+      // Passive
+      React.createElement("div", { style: { textAlign:"center", flex:"1 1 0" } },
+        React.createElement("div", { style: { fontSize:"0.52rem", letterSpacing:"0.15em", color:C.dim, textTransform:"uppercase" } }, "Passive"),
+        React.createElement("div", { style: { fontSize:"1.05rem", color:C.green, lineHeight:1.1 } },
+          React.createElement(AnimatedNumber, { value: passiveIncome, suffix:"/mo" })
+        )
       ),
-      React.createElement("div", { style: { textAlign:"center" } },
-        React.createElement("div", { style: { fontSize:"0.6rem", letterSpacing:"0.2em", color:C.dim, textTransform:"uppercase", marginBottom:"0.1rem" } }, "Passive Income"),
-        React.createElement("div", { style: { fontSize:"1.1rem", color:C.green } }, React.createElement(AnimatedNumber, { value: passiveIncome, suffix:"/mo" })),
-        React.createElement("div", { style: { fontSize:"0.55rem", color:C.dim } }, "target $" + (target/1000).toFixed(0) + "k/mo")
+
+      // Time
+      React.createElement("div", { style: { textAlign:"center", flex:"1 1 0" } },
+        React.createElement("div", { style: { fontSize:"0.52rem", letterSpacing:"0.15em", color:C.dim, textTransform:"uppercase" } }, "Time Free"),
+        React.createElement("div", { style: { fontSize:"0.95rem", color:C.white, fontWeight:"bold", lineHeight:1.1 } }, formatClock(daysEl))
       ),
-      React.createElement("div", { style: { flex:1, minWidth:"110px" } },
-        React.createElement("div", { style: { fontSize:"0.6rem", letterSpacing:"0.18em", color:C.dim, textTransform:"uppercase", marginBottom:"0.3rem" } }, "Freedom Progress"),
-        React.createElement("div", { style: { height:"7px", background:"#252525", borderRadius:"4px", overflow:"hidden" } },
-          React.createElement("div", { style: { height:"100%", width: pct + "%", background:"linear-gradient(to right," + C.gold + "," + C.green + ")", borderRadius:"4px", transition:"width 0.8s ease" } })
+
+      // Debt (only if present)
+      (debt > 0 || props.vidoDebt > 0) && React.createElement("div", { style: { textAlign:"center", flex:"1 1 0" } },
+        React.createElement("div", { style: { fontSize:"0.52rem", letterSpacing:"0.15em", color:C.dim, textTransform:"uppercase" } }, "Debt" + (props.vidoDebt > 0 ? " 🔪" : "") ),
+        React.createElement("div", { style: { fontSize:"1rem", color:C.red, fontWeight:"bold", animation:"warn 2s ease-in-out infinite", lineHeight:1.1 } },
+          React.createElement(AnimatedNumber, { value: debt + (props.vidoDebt||0) })
+        )
+      ),
+
+      // Buttons — inbox + home always separate
+      React.createElement("div", { style: { display:"flex", gap:"0.35rem", flexShrink:0, alignItems:"center" } },
+        // Inbox button with badge
+        React.createElement("div", { style:{ position:"relative" } },
+          React.createElement("button", {
+            onClick: function() { if (props.onInbox) props.onInbox(); },
+            title: "Messages",
+            style: { background:"transparent", border:"1px solid " + C.gold + "44", borderRadius:"6px", padding:"0.35rem 0.6rem", color:C.gold, fontSize:"1rem", cursor:"pointer", lineHeight:1 }
+          }, "📬"),
+          props.inboxCount > 0 && React.createElement("span", { style:{
+            position:"absolute", top:"-5px", right:"-5px",
+            background:"#C0392B", color:"#fff", borderRadius:"50%",
+            width:"16px", height:"16px", fontSize:"0.58rem",
+            display:"flex", alignItems:"center", justifyContent:"center",
+            fontWeight:"bold", pointerEvents:"none"
+          }}, props.inboxCount > 9 ? "9+" : String(props.inboxCount))
         ),
-        React.createElement("div", { style: { fontSize:"0.55rem", color:C.dim, marginTop:"0.2rem" } }, Math.round(pct) + "% to financial freedom")
-      ),
-      (gameState && gameState.billionaireMode) && React.createElement("div", { style: { textAlign:"center" } },
-        React.createElement("div", { style: { fontSize:"0.6rem", letterSpacing:"0.2em", color:C.dim, textTransform:"uppercase", marginBottom:"0.1rem" } }, "Empire Value"),
-        React.createElement("div", { style: { fontSize:"1.1rem", color:"#cc4444", fontWeight:"bold" } }, fmtFull(gameState.billNetWorth||0))
-      ),
-      (debt > 0 || props.vidoDebt > 0) && React.createElement("div", { style: { textAlign:"center" } },
-        React.createElement("div", { style: { fontSize:"0.6rem", letterSpacing:"0.2em", color:C.dim, textTransform:"uppercase", marginBottom:"0.1rem" } }, "Debt" + (props.vidoDebt > 0 ? " 🔪" : "")),
-        React.createElement("div", { style: { fontSize:"1.1rem", color:C.red, fontWeight:"bold", animation:"warn 2s ease-in-out infinite" } }, React.createElement(AnimatedNumber, { value: debt + (props.vidoDebt||0) })),
-        React.createElement("div", { style: { fontSize:"0.55rem", color:C.dim } }, fmtFull(Math.round((debt * CREDIT_RATE + (props.vidoDebt||0) * VIDO_RATE) / 52)) + "/wk interest")
-      ),
-      React.createElement("div", { style: { textAlign:"center" } },
-        React.createElement("div", { style: { fontSize:"0.6rem", letterSpacing:"0.2em", color:C.dim, textTransform:"uppercase", marginBottom:"0.1rem" } }, "Time Survived"),
-        React.createElement("div", { style: { fontSize:"0.9rem", color:C.white, fontWeight:"bold" } }, formatClock(daysEl)),
-        React.createElement("div", { style: { fontSize:"0.55rem", color:C.dim } }, formatSurvivedLabel(daysEl) + " free")
-      ),
-      React.createElement("div", { style:{ position:"relative", flexShrink:0 } },
+        // Home button — always works
         React.createElement("button", {
-          onClick: function() { if (props.onInbox) props.onInbox(); else if (onHome) onHome(); },
-          title: "Messages / Menu",
-          style: { background:"transparent", border:"1px solid " + C.gold + "44", borderRadius:"6px", padding:"0.4rem 0.7rem", color:C.gold, fontSize:"1.1rem", cursor:"pointer", lineHeight:1 }
-        }, "📱"),
-        props.inboxCount > 0 && React.createElement("span", { style:{
-          position:"absolute", top:"-5px", right:"-5px",
-          background:"#C0392B", color:"#fff", borderRadius:"50%",
-          width:"16px", height:"16px", fontSize:"0.58rem",
-          display:"flex", alignItems:"center", justifyContent:"center",
-          fontWeight:"bold", pointerEvents:"none"
-        }}, props.inboxCount > 9 ? "9+" : String(props.inboxCount))
+          onClick: function() { if (onHome) onHome(); },
+          title: "Home",
+          style: { background:"transparent", border:"1px solid " + C.gold + "44", borderRadius:"6px", padding:"0.35rem 0.6rem", color:C.gold, fontSize:"1rem", cursor:"pointer", lineHeight:1 }
+        }, "🏠")
       )
+    ),
+
+    // ── ROW 2 — progress bar ──
+    React.createElement("div", { style: { display:"flex", alignItems:"center", gap:"0.5rem" } },
+      React.createElement("div", { style: { fontSize:"0.52rem", color:C.dim, whiteSpace:"nowrap" } }, Math.round(pct) + "%"),
+      React.createElement("div", { style: { flex:1, height:"5px", background:"#252525", borderRadius:"4px", overflow:"hidden" } },
+        React.createElement("div", { style: { height:"100%", width: pct + "%", background:"linear-gradient(to right," + C.gold + "," + C.green + ")", borderRadius:"4px", transition:"width 0.8s ease" } })
+      ),
+      React.createElement("div", { style: { fontSize:"0.52rem", color:C.dim, whiteSpace:"nowrap" } }, "$" + (target/1000).toFixed(0) + "k target")
     )
   );
 }
@@ -3783,12 +3801,18 @@ function App() {
 
   var handleHome = useCallback(function() {
     var gs = gsRef.current;
+    // Always clear overlays
+    setPendingOutcome(null);
+    setPendingEvent(null);
+    // If in tycoon/billionaire mode, collapse dashboard and go to root node
     if (gs && (gs.tycoonMode || gs.billionaireMode)) {
-      if (showTycoonRef.current) { setPendingOutcome(null); return; }
       setShowTycoon(false);
+      setNodeKey(gs.billionaireMode ? "bill_root" : "root");
+      setNodeHistory([]);
+      return;
     }
-    setNodeKey(gsRef.current && gsRef.current.billionaireMode ? "bill_root" : "root");
-    setNodeHistory([]); setPendingOutcome(null);
+    setNodeKey(gs && gs.billionaireMode ? "bill_root" : "root");
+    setNodeHistory([]);
   }, []);
 
   var handleStart = useCallback(function(amt, name) {
