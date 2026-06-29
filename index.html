@@ -3808,13 +3808,13 @@ function App() {
 
   var handleHome = useCallback(function() {
     var gs = gsRef.current;
-    // Always clear overlays
     setPendingOutcome(null);
     setPendingEvent(null);
-    // If in tycoon/billionaire mode, collapse dashboard and go to root node
     if (gs && (gs.tycoonMode || gs.billionaireMode)) {
+      // Stay in tycoon_chase so win condition doesn't re-fire suburban
+      // but collapse the dashboard so root choices are visible
       setShowTycoon(false);
-      setTierScreen("none");
+      setTierScreen("tycoon_chase");
       setNodeKey(gs.billionaireMode ? "bill_root" : "root");
       setNodeHistory([]);
       return;
@@ -4029,10 +4029,6 @@ function App() {
   if(tierScreen==="sailoff"){return React.createElement(React.Fragment,null,React.createElement("style",null,CSS),React.createElement(SailOffScreen,{tier:sailTier,passiveIncome:passiveIncome,gameState:gameState,onRestart:function(){setScreen("reveal");setTierScreen("none");}}));}
 
   // ── MAIN GAME ──
-  // Force Tycoon Dashboard visible when in tycoon_chase mode
-  if(tierScreen === "tycoon_chase" && gameState.tycoonMode && !showTycoon) {
-    setShowTycoon(true);
-  }
 
   var content;
   if(notifResult){content=React.createElement(NotifResult,{msg:notifResult.msg,cost:notifResult.cost,gain:notifResult.gain||0,passiveAdd:notifResult.passiveAdd||0,isGamble:notifResult.isGamble,won:notifResult.won,onContinue:handleNotifResultDone});}
