@@ -4029,7 +4029,7 @@ function App() {
   else if(pendingEvent){content=React.createElement(EventCard,{event:pendingEvent,onContinue:handleEvent});}
   else if(pendingOutcome){content=React.createElement(OutcomeCard,{text:pendingOutcome.text,onContinue:handleOutcome});}
   else if((gameState.tycoonMode||gameState.billionaireMode)&&showTycoon){content=React.createElement(TycoonDashboard,{cash:cash,passiveIncome:passiveIncome,gameState:gameState,totalAssets:totalAssets,onAcquire:handleAcquire,onFinance:handleFinanceOpen,onSailOff:function(){handleSailOff(totalAssets>=10000000?"mogul":"suburban");}});}
-  else if(gameState.billionaireMode&&!gameState.billFoundationPct){content=React.createElement(DecisionCard,{nodeKey:nodeKey.startsWith("bill_")?nodeKey:"bill_root",gameState:gameState,cash:cash,onChoice:handleChoice,onBack:handleBack,onFinance:handleFinanceOpen});}
+  else if(gameState.billionaireMode&&!gameState.billFoundationPct&&nodeKey!=="root"){content=React.createElement(DecisionCard,{nodeKey:nodeKey.startsWith("bill_")?nodeKey:"bill_root",gameState:gameState,cash:cash,onChoice:handleChoice,onBack:handleBack,onFinance:handleFinanceOpen});}
   else if(nodeKey.startsWith("politico_")){content=React.createElement(DecisionCard,{nodeKey:nodeKey,gameState:gameState,cash:cash,onChoice:handleChoice,onBack:handleBack,onFinance:handleFinanceOpen});}
   else{content=React.createElement(React.Fragment,null,React.createElement(DecisionCard,{nodeKey:nodeKey,gameState:gameState,cash:cash,onChoice:handleChoice,onBack:handleBack,onFinance:handleFinanceOpen}),nodeKey==="root"&&React.createElement(StatusBar,{gameState:gameState,annualCosts:annualCosts}));}
 
