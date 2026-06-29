@@ -2677,15 +2677,7 @@ function HUD(props) {
         React.createElement("div", { style: { fontSize:"0.95rem", color:C.white, fontWeight:"bold", lineHeight:1.1 } }, formatClock(daysEl))
       ),
 
-      // Debt (only if present)
-      (debt > 0 || props.vidoDebt > 0) && React.createElement("div", { style: { textAlign:"center", flex:"1 1 0" } },
-        React.createElement("div", { style: { fontSize:"0.52rem", letterSpacing:"0.15em", color:C.dim, textTransform:"uppercase" } }, "Debt" + (props.vidoDebt > 0 ? " 🔪" : "") ),
-        React.createElement("div", { style: { fontSize:"1rem", color:C.red, fontWeight:"bold", animation:"warn 2s ease-in-out infinite", lineHeight:1.1 } },
-          React.createElement(AnimatedNumber, { value: debt + (props.vidoDebt||0) })
-        )
-      ),
-
-      // Buttons — inbox + home always separate
+      // Debt (only if present) — shown in row 2 to avoid clipping
       React.createElement("div", { style: { display:"flex", gap:"0.35rem", flexShrink:0, alignItems:"center" } },
         // Inbox button with badge
         React.createElement("div", { style:{ position:"relative" } },
@@ -2711,13 +2703,16 @@ function HUD(props) {
       )
     ),
 
-    // ── ROW 2 — progress bar ──
+    // ── ROW 2 — progress bar + debt ──
     React.createElement("div", { style: { display:"flex", alignItems:"center", gap:"0.5rem" } },
       React.createElement("div", { style: { fontSize:"0.52rem", color:C.dim, whiteSpace:"nowrap" } }, Math.round(pct) + "%"),
       React.createElement("div", { style: { flex:1, height:"5px", background:"#252525", borderRadius:"4px", overflow:"hidden" } },
         React.createElement("div", { style: { height:"100%", width: pct + "%", background:"linear-gradient(to right," + C.gold + "," + C.green + ")", borderRadius:"4px", transition:"width 0.8s ease" } })
       ),
-      React.createElement("div", { style: { fontSize:"0.52rem", color:C.dim, whiteSpace:"nowrap" } }, "$" + (target/1000).toFixed(0) + "k target")
+      React.createElement("div", { style: { fontSize:"0.52rem", color:C.dim, whiteSpace:"nowrap" } }, "$" + (target/1000).toFixed(0) + "k target"),
+      (debt > 0 || props.vidoDebt > 0) && React.createElement("div", { style: { fontSize:"0.72rem", color:C.red, fontWeight:"bold", whiteSpace:"nowrap", animation:"warn 2s ease-in-out infinite" } },
+        (props.vidoDebt > 0 ? "🔪 " : "💳 ") + fmtShortWin(debt + (props.vidoDebt||0)) + " debt"
+      )
     )
   );
 }
@@ -3811,15 +3806,14 @@ function App() {
     setPendingOutcome(null);
     setPendingEvent(null);
     if (gs && (gs.tycoonMode || gs.billionaireMode)) {
-      // Stay in tycoon_chase so win condition doesn't re-fire suburban
-      // but collapse the dashboard so root choices are visible
       setShowTycoon(false);
       setTierScreen("tycoon_chase");
+      // billionaireMode goes to bill_root, tycoonMode (only) goes to regular root
       setNodeKey(gs.billionaireMode ? "bill_root" : "root");
       setNodeHistory([]);
       return;
     }
-    setNodeKey(gs && gs.billionaireMode ? "bill_root" : "root");
+    setNodeKey("root");
     setNodeHistory([]);
   }, []);
 
