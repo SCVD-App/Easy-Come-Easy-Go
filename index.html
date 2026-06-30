@@ -635,7 +635,7 @@ function ScorecardModal(props) {
                     var file = new File([blob], "eceg-score-" + scoreStr + ".png", { type:"image/png" });
                     var shareData = {
                       title: "Ez C Ez G — " + scoreStr,
-                      text: "Wanna give it a try? " + appUrl,
+                      text: shareText + "\n\n🎮 " + appUrl,
                       files: [file]
                     };
                     if (navigator.canShare(shareData)) {
@@ -932,6 +932,12 @@ function initialGS() {
 function nodeRoot(gs) {
   const choices = [];
   if (gs.tycoonMode || gs.billionaireMode) choices.push({ label: "💎 Return to Empire Dashboard", next: "__tycoon__" });
+  // Bill Root one-time options accessible from home when in billionaire mode
+  if (gs.billionaireMode) {
+    if (!gs.hasLicenced) choices.push({ label: "📜 Licence the IP — one-time offer", next: "bill_licence" });
+    if (!gs.hasEquity) choices.push({ label: "⭐ Staff equity scheme", next: "bill_equity" });
+    if (!gs.hasIpod && (gs.billNetWorth||0) >= 50000000) choices.push({ label: "🚀 IPO — go public", next: "bill_ipo" });
+  }
   if (!gs.quitJob) choices.push({ label: "💼 Quit the job", next: "quit_job" });
   choices.push({ label: gs.car ? "🚗 Buy another car" : "🚗 Buy a car", next: "buy_car" });
   if (!gs.house) choices.push({ label: "🏠 Buy a house", next: "buy_house" });
