@@ -3638,6 +3638,7 @@ function NotificationInbox(props) {
   var onClose = props.onClose;
   var onProUpgrade = props.onProUpgrade || function(){};
   var count = queue.length + inbox.length;
+  var expandedS = useState(null); var expandedKey = expandedS[0], setExpandedKey = expandedS[1];
 
   function renderMessage(notif, i, isPending) {
     var isKP = notif.type === "kp" || notif.sender === "K.P.";
@@ -3700,11 +3701,27 @@ function NotificationInbox(props) {
           : React.createElement(React.Fragment, null,
               queue.map(function(notif, i) { return renderMessage(notif, i, true); }),
               inbox.map(function(notif, i) {
-                return React.createElement("div", { key:"i"+i, style:{ padding:"0.85rem 1rem", borderBottom:"1px solid #1a1a1a", opacity:0.55 } },
-                  React.createElement("div", { style:{ fontSize:"0.78rem", color: notif.type==="kp"||notif.sender==="K.P." ? "#C0392B88" : "#888" } },
-                    notif.type==="kp"||notif.sender==="K.P." ? "⚡ K.P." : notif.type==="paulson"||notif.sender==="Richard Paulson" ? "📊 Richard Paulson" : (notif.from||notif.sender||"Message")
+                var key = "i"+i;
+                var isOpen = expandedKey === key;
+                var isKPm = notif.type==="kp"||notif.sender==="K.P.";
+                var isPaulsonm = notif.type==="paulson"||notif.sender==="Richard Paulson";
+                return React.createElement("div", {
+                  key:key,
+                  onClick: function(){ setExpandedKey(isOpen ? null : key); },
+                  style:{ padding:"0.85rem 1rem", borderBottom:"1px solid #1a1a1a", opacity: isOpen ? 1 : 0.55, cursor:"pointer" }
+                },
+                  React.createElement("div", { style:{ display:"flex", justifyContent:"space-between", alignItems:"center" } },
+                    React.createElement("div", { style:{ fontSize:"0.78rem", color: isKPm ? "#C0392B88" : "#888" } },
+                      isKPm ? "⚡ K.P." : isPaulsonm ? "📊 Richard Paulson" : (notif.from||notif.sender||"Message")
+                    ),
+                    React.createElement("div", { style:{ fontSize:"0.65rem", color:"#444" } }, isOpen ? "▲" : "▼")
                   ),
-                  React.createElement("div", { style:{ fontSize:"0.72rem", color:"#555", lineHeight:1.5 } }, notif.preview || "")
+                  React.createElement("div", { style:{ fontSize:"0.72rem", color:"#555", lineHeight:1.5 } }, notif.preview || ""),
+                  isOpen && notif.body && React.createElement("div", { style:{ fontSize:"0.72rem", color:"#888", lineHeight:1.6, marginTop:"0.5rem", whiteSpace:"pre-wrap" } }, notif.body),
+                  isOpen && isKPm && notif.cta === "pro" && React.createElement("button", {
+                    onClick: function(e) { e.stopPropagation(); onProUpgrade(); },
+                    style:{ marginTop:"0.75rem", width:"100%", background:"linear-gradient(135deg,#7a0000,#C0392B)", border:"none", borderRadius:"6px", padding:"0.65rem", color:"#fff", fontSize:"0.8rem", fontWeight:"bold", cursor:"pointer", letterSpacing:"0.08em", fontFamily:"Georgia,serif" }
+                  }, "Buy Pro — Come have a drink 🥃")
                 );
               })
             )
@@ -4033,10 +4050,14 @@ function App() {
     if (daysElapsed < 21) return;
     if (shownNotifsRef.current.indexOf("steve_text") >= 0) return;
     shownNotifsRef.current = shownNotifsRef.current.concat(["steve_text"]);
+    var stevePreview = manureQuit ? "Mate how did you know things had gone to poop..." : "Mate. Since you left the place has gone sideways...";
+    var steveBody = manureQuit
+      ? "Mate how did you know things had gone to poop since you left? We all wish that you could buy the place out — we would make it work for you — you know what Greg is like, he won't listen to anyone!\n\n— Steve"
+      : "Mate.\n\nSince you left the place has gone sideways. Greg won't listen to anyone. Half the team is looking for other jobs. I keep telling him what needs fixing — he won't hear it.\n\nI know it's a big ask but... I wish you could buy the place. We'd make it work. The whole team would. Anyway. Hope you're doing well out there.\n\n— Steve";
     setPendingNotif({
       id: "steve_text", type:"sms", tier:"legit",
-      from:"Steve", preview:"Mate. Since you left the place has gone sideways...",
-      body:"Mate.\n\nSince you left the place has gone sideways. Greg won't listen to anyone. Half the team is looking for other jobs. I keep telling him what needs fixing — he won't hear it.\n\nI know it's a big ask but... I wish you could buy the place. We'd make it work. The whole team would. Anyway. Hope you're doing well out there.\n\n— Steve",
+      from:"Steve", preview:stevePreview,
+      body:steveBody,
       acceptLabel:"Tell Steve you're interested", rejectLabel:"Not right now mate",
       steveContactTrigger: true,
       onAccept:{ cost:0, passiveAdd:0, msg:"You text Steve back. Three words: 'Get a valuation.' Steve replies in forty seconds with a thumbs up and then immediately a spreadsheet he clearly had ready." },
