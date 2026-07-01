@@ -465,20 +465,124 @@ function TombstoneScreen(props) {
 }
 
 // ── SCORECARD COMPONENT ───────────────────────────────────
+// ── WEALTH CHART ──────────────────────────────────────────────
+function WealthChart(props) {
+  var history = props.history || [];
+  var winAmount = props.winAmount || 0;
+  var target = calcTarget(winAmount);
+
+  if (history.length < 2) return null;
+
+  var W = 320, H = 160, PAD = { top:12, right:16, bottom:32, left:52 };
+  var innerW = W - PAD.left - PAD.right;
+  var innerH = H - PAD.top - PAD.bottom;
+
+  // Baseline: term deposit drawdown
+  var months = history[history.length-1].month || history.length;
+  var monthlyDrawdown = target; // target passive = what you'd need to draw down
+  var baseline = [];
+  var bal = winAmount;
+  for (var m = 0; m <= months; m++) {
+    baseline.push({ month: m, value: Math.max(0, bal) });
+    bal -= monthlyDrawdown;
+  }
+
+  // Max values for scale
+  var maxPassive = Math.max.apply(null, history.map(function(h){return h.passive;}));
+  var maxBaseline = winAmount;
+  var maxY = Math.max(maxPassive, maxBaseline, target) * 1.1;
+
+  function xPos(m) { return PAD.left + (m / months) * innerW; }
+  function yPos(v) { return PAD.top + innerH - (v / maxY) * innerH; }
+
+  // Build SVG path strings
+  function makePath(points, xKey, yKey) {
+    return points.map(function(p, i) {
+      return (i === 0 ? "M" : "L") + xPos(p[xKey]).toFixed(1) + "," + yPos(p[yKey]).toFixed(1);
+    }).join(" ");
+  }
+
+  var baselinePath = makePath(baseline.filter(function(b){return b.value>0;}), "month", "value");
+  var passivePath = makePath(history, "month", "passive");
+
+  // Year labels on x axis
+  var yearMarks = [];
+  for (var yr = 1; yr * 12 <= months; yr++) {
+    yearMarks.push(yr * 12);
+  }
+
+  // Crossover point
+  var crossover = null;
+  for (var i = 0; i < history.length; i++) {
+    if (history[i].passive >= target) { crossover = history[i]; break; }
+  }
+
+  return React.createElement("div", { style:{ marginBottom:"1.25rem" } },
+    React.createElement("div", { style:{ fontSize:"0.6rem", letterSpacing:"0.15em", color:"#555", textTransform:"uppercase", marginBottom:"0.4rem", textAlign:"center" } }, "Passive Income vs Baseline Drawdown"),
+    React.createElement("svg", { width:"100%", viewBox:"0 0 "+W+" "+H, style:{ display:"block", overflow:"visible" } },
+
+      // Grid lines
+      [0.25, 0.5, 0.75, 1].map(function(f, i) {
+        var y = yPos(maxY * f);
+        var label = maxY * f >= 1000000 ? "$"+(maxY*f/1000000).toFixed(1)+"M" : "$"+(maxY*f/1000).toFixed(0)+"k";
+        return React.createElement("g", { key:i },
+          React.createElement("line", { x1:PAD.left, y1:y, x2:W-PAD.right, y2:y, stroke:"#222", strokeWidth:"0.5" }),
+          React.createElement("text", { x:PAD.left-4, y:y+3, textAnchor:"end", fill:"#444", fontSize:"7" }, label)
+        );
+      }),
+
+      // Target line
+      React.createElement("line", { x1:PAD.left, y1:yPos(target), x2:W-PAD.right, y2:yPos(target), stroke:"#C9A84C44", strokeWidth:"1", strokeDasharray:"4,3" }),
+      React.createElement("text", { x:W-PAD.right+2, y:yPos(target)+3, fill:"#C9A84C88", fontSize:"6" }, "target"),
+
+      // Baseline path (gold — what you'd draw down)
+      React.createElement("path", { d:baselinePath, fill:"none", stroke:"#C9A84C", strokeWidth:"1.5", strokeDasharray:"5,3", opacity:"0.6" }),
+
+      // Passive income path (green — what you built)
+      React.createElement("path", { d:passivePath, fill:"none", stroke:"#27ae60", strokeWidth:"2" }),
+
+      // Crossover marker
+      crossover && React.createElement("g", null,
+        React.createElement("circle", { cx:xPos(crossover.month), cy:yPos(crossover.passive), r:"4", fill:"#27ae60", stroke:"#0a0a0a", strokeWidth:"1.5" }),
+        React.createElement("text", { x:xPos(crossover.month), y:yPos(crossover.passive)-7, textAnchor:"middle", fill:"#27ae60", fontSize:"6.5", fontWeight:"bold" }, "✓ crossover")
+      ),
+
+      // X axis year labels
+      yearMarks.map(function(m) {
+        return React.createElement("g", { key:m },
+          React.createElement("line", { x1:xPos(m), y1:PAD.top+innerH, x2:xPos(m), y2:PAD.top+innerH+4, stroke:"#333", strokeWidth:"0.5" }),
+          React.createElement("text", { x:xPos(m), y:H-4, textAnchor:"middle", fill:"#444", fontSize:"7" }, "Yr "+(m/12))
+        );
+      }),
+
+      // X axis line
+      React.createElement("line", { x1:PAD.left, y1:PAD.top+innerH, x2:W-PAD.right, y2:PAD.top+innerH, stroke:"#333", strokeWidth:"0.5" }),
+
+      // Legend
+      React.createElement("g", null,
+        React.createElement("line", { x1:PAD.left, y1:H-6, x2:PAD.left+14, y2:H-6, stroke:"#27ae60", strokeWidth:"2" }),
+        React.createElement("text", { x:PAD.left+17, y:H-3, fill:"#27ae60", fontSize:"7" }, "Your passive"),
+        React.createElement("line", { x1:PAD.left+75, y1:H-6, x2:PAD.left+89, y2:H-6, stroke:"#C9A84C", strokeWidth:"1.5", strokeDasharray:"4,2" }),
+        React.createElement("text", { x:PAD.left+92, y:H-3, fill:"#C9A84C88", fontSize:"7" }, "Drawdown baseline")
+      )
+    )
+  );
+}
+
 function ScorecardModal(props) {
   var entry = props.entry;
   var board = props.board || [];
   var rank = props.rank;
   var onClose = props.onClose;
   var proStatus = props.proStatus || null;
+  var history = props.history || [];
 
   var scoreLabel = getScoreLabel(entry.score);
   var diff = getDifficulty(entry.winAmount);
 
-  // Find player rank in board
   var rankStr = rank !== null ? "#" + (rank+1) + " on your leaderboard" : "Not ranked yet";
-
   var onProUpgrade = props.onProUpgrade || function(){};
+  var globalSubmitState = useState(null); var globalSubmit = globalSubmitState[0], setGlobalSubmit = globalSubmitState[1];
   var submittingState = useState(false); var submitting = submittingState[0], setSubmitting = submittingState[1];
 
   async function handleGlobalSubmit() {
@@ -549,6 +653,11 @@ function ScorecardModal(props) {
           React.createElement("div", { style:{ fontSize:"0.7rem", color:"#555", marginTop:"0.5rem" } },
             fmtShortWin(entry.winAmount) + " win → " + fmtShortPassive(entry.passive) + "/mo = " + (entry.score !== null ? entry.score.toFixed(1) : "∞")
           )
+        ),
+
+        // WEALTH CHART
+        React.createElement("div", { style:{ background:"#0a0a00", border:"1px solid #1a1a00", borderRadius:"8px", padding:"1rem", marginBottom:"1rem" } },
+          React.createElement(WealthChart, { history:history, winAmount:entry.winAmount })
         ),
 
         // Stats grid
@@ -905,24 +1014,27 @@ function initialGS() {
     gamblingStreak: 0,
     tycoonMode: false,
     debt: 0,
-    tycoonAssets: [],      // acquired tycoon-tier assets
-    legacyScore: 0,        // -100 to +100
+    tycoonAssets: [],
+    legacyScore: 0,
     gamblingTotal: 0,
     restrainedChoices: 0,
     isStructured: false,
     paulsonContact: 0,
     wifePortfolioValue: 0,
-    wifePortfolioPassive: 0,   // counts unspectacular decisions
-    billionaireMode: false, // Gates path activated
-    hasMadePoliticalDonation: false, // triggers Hon. Murray approach
-    steveContacted: false,     // Steve has made contact about buying the business
-    hasBoughtBusiness: false,  // player bought the old workplace
-    sonName: null,          // randomised each game
-    politicoPath: 0,        // 0=not started, 1=met Murray, 2=contract, 3=precinct, 4=port
-    politicoExposed: false, // journalist/inquiry triggered
-    billAssets: [],         // business empire
-    billNetWorth: 0,        // paper + real
-    dubiousScore: 0,        // insider deals, political donations etc
+    wifePortfolioPassive: 0,
+    billionaireMode: false,
+    hasMadePoliticalDonation: false,
+    steveContacted: false,
+    hasBoughtBusiness: false,
+    sonName: null,
+    politicoPath: 0,
+    politicoExposed: false,
+    billAssets: [],
+    billNetWorth: 0,
+    dubiousScore: 0,
+    // History tracking for chart
+    netWorthHistory: [],   // [{ month, netWorth, passive }]
+    paulsonMilestones: {}, // tracks which milestones have fired
   };
 }
 
@@ -1411,6 +1523,13 @@ var DAY_NAMES = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Sa
 function getDayName(d) { return DAY_NAMES[(1 + d) % 7]; }
 function getWeekNum(d) { return Math.floor(d / 7) + 1; }
 function formatClock(d) { var day = getDayName(d), week = getWeekNum(d), year = Math.floor(d/365)+1; return year > 1 ? day + ", Wk " + week + ", Yr " + year : day + ", Week " + week; }
+function formatClockShort(d) {
+  var days = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+  var day = days[d % 7];
+  var week = getWeekNum(d);
+  var year = Math.floor(d/365)+1;
+  return year > 1 ? day+", W"+week+", Y"+year : day+", Wk "+week;
+}
 function formatSurvivedLabel(d) { var y=Math.floor(d/365), wd=d%365, w=Math.floor(wd/7), days=wd%7, p=[]; if(y>0)p.push(y+(y===1?" year":" years")); if(w>0)p.push(w+(w===1?" week":" weeks")); if(days>0&&y===0)p.push(days+(days===1?" day":" days")); return p.length?p.join(", "):"Day 1"; }
 
 var SON_NAMES = ["Bryce","Kyle","Trent","Blake","Cody","Brayden","Lachlan","Jayden","Zac","Cooper"];
@@ -2679,8 +2798,8 @@ function HUD(props) {
 
       // Time
       React.createElement("div", { style: { textAlign:"center", flex:"1 1 0" } },
-        React.createElement("div", { style: { fontSize:"0.52rem", letterSpacing:"0.15em", color:C.dim, textTransform:"uppercase" } }, "Time Free"),
-        React.createElement("div", { style: { fontSize:"0.95rem", color:C.white, fontWeight:"bold", lineHeight:1.1 } }, formatClock(daysEl))
+        React.createElement("div", { style: { fontSize:"0.52rem", letterSpacing:"0.15em", color:C.dim, textTransform:"uppercase" } }, "Free"),
+        React.createElement("div", { style: { fontSize:"0.95rem", color:C.white, fontWeight:"bold", lineHeight:1.1 } }, formatClockShort(daysEl))
       ),
 
       // Buttons — pro + inbox + home
@@ -3573,6 +3692,11 @@ function App() {
   var passRef = useRef(0);
   var gsRef = useRef(gameState);
   var lastGlowWeek = useRef(-1);
+  var winRef = useRef(0);
+
+  function queueNotif(notif) {
+    setInbox(function(b) { return [notif].concat(b).slice(0,30); });
+  }
 
   var totalAssets = cash
     + (gameState.tycoonAssets||[]).reduce(function(s,a){return s+(a.assetValue||0);},0)
@@ -3733,6 +3857,55 @@ function App() {
         var msgs = ["Monthly passive income landed","Your money is working while you sleep","The portfolio keeps delivering","Another month. Another payday.","While you were out — your money was not","Passive income credited to your balance"];
         setPassiveGlow({ amount: passRef.current, message: msgs[Math.floor(nw/4) % msgs.length] });
         setTimeout(function(){setPassiveGlow(null);}, 2900);
+
+        // ── MONTHLY SNAPSHOT ──
+        var month = Math.floor(nw / 4);
+        var gs = gsRef.current;
+        var snapNetWorth = cashRef.current
+          + (gs.investments||[]).reduce(function(s,inv){return s+(inv.amount||0);},0)
+          + (gs.tycoonAssets||[]).reduce(function(s,a){return s+(a.assetValue||0);},0)
+          + (gs.billAssets||[]).reduce(function(s,a){return s+(a.value||0);},0);
+
+        setGameState(function(g) {
+          var history = (g.netWorthHistory||[]).concat([{ month:month, netWorth:snapNetWorth, passive:passRef.current }]);
+          return Object.assign({},g,{netWorthHistory:history});
+        });
+
+        // ── PAULSON MILESTONES ──
+        var pm = (gsRef.current.paulsonMilestones||{});
+        var startNW = winRef.current; // initial win as baseline
+        var ratio = snapNetWorth / Math.max(startNW, 1);
+
+        // Doubled net worth
+        if (ratio >= 2 && !pm.doubled) {
+          setGameState(function(g){return Object.assign({},g,{paulsonMilestones:Object.assign({},g.paulsonMilestones,{doubled:true})});});
+          queueNotif({ sender:"Richard Paulson", preview:"Net worth doubled.", body:"Just ran the numbers. Your net worth has doubled since day one. That's not luck — that's structure. Most people with a windfall are down 30% by now. Well done.", type:"paulson" });
+        }
+        // Crossover — passive > drawdown baseline
+        var drawdownRate = calcTarget(startNW) / 1;
+        if (passRef.current >= drawdownRate && !pm.crossover) {
+          setGameState(function(g){return Object.assign({},g,{paulsonMilestones:Object.assign({},g.paulsonMilestones,{crossover:true})});});
+          queueNotif({ sender:"Richard Paulson", preview:"You've beaten the baseline.", body:"Your passive income now exceeds what a term deposit drawdown would have paid you each month. You've officially beaten doing nothing. That's the crossover. Everything from here is upside.", type:"paulson" });
+        }
+        // 5M net worth
+        if (snapNetWorth >= 5000000 && !pm.fiveMil) {
+          setGameState(function(g){return Object.assign({},g,{paulsonMilestones:Object.assign({},g.paulsonMilestones,{fiveMil:true})});});
+          queueNotif({ sender:"Richard Paulson", preview:"$5M in assets.", body:"Total asset position just cleared five million. The compounding is doing what compounding does. I'd say well done but the maths did most of the work.", type:"paulson" });
+        }
+        // Accountant arc — strong passive, low lifestyle spend
+        var hasLifestyle = (gs.bigToys||[]).length + (gs.lady||[]).length + (gs.holidays||[]).length;
+        if (passRef.current >= 25000 && hasLifestyle < 2 && month >= 6 && !pm.accountant) {
+          setGameState(function(g){return Object.assign({},g,{paulsonMilestones:Object.assign({},g.paulsonMilestones,{accountant:true})});});
+          queueNotif({ sender:"Richard Paulson", preview:"Time to spend some money.", body:"I need you to listen carefully. You've structured this beautifully — passive income is solid, assets are clean, tax position is excellent. Which is exactly the problem. The ATO is going to take a very close interest in a business with your cash position and no visible lifestyle spend. I'm not telling you to be reckless. I'm telling you that buying a jet ski is now, technically, sound financial strategy. Go have some fun. That's not advice I give often.", type:"paulson" });
+        }
+        // Year 1 summary
+        if (month === 12 && !pm.year1) {
+          setGameState(function(g){return Object.assign({},g,{paulsonMilestones:Object.assign({},g.paulsonMilestones,{year1:true})});});
+          var termDepositAlt = Math.round(startNW * 0.045);
+          var actualPassive = passRef.current * 12;
+          var diff = actualPassive - termDepositAlt;
+          queueNotif({ sender:"Richard Paulson", preview:"Year one complete.", body:"Twelve months in. A term deposit on your win would have paid roughly $" + termDepositAlt.toLocaleString() + " this year. Your passive income generated $" + Math.round(actualPassive).toLocaleString() + ". Difference: " + (diff >= 0 ? "+" : "") + "$" + Math.round(diff).toLocaleString() + ". " + (diff >= 0 ? "You've outperformed the do-nothing strategy." : "Still building — stay the course."), type:"paulson" });
+        }
       }
       var exp = annRef.current / 52;
       if (debtRef.current > 0) exp += debtRef.current * CREDIT_RATE / 52;
@@ -3798,7 +3971,7 @@ function App() {
     (gs.investments||[]).slice(0,4).forEach(function(inv){assets.push("📈 "+inv.type);});
     var now = new Date();
     var dateStr = now.getFullYear()+"-"+String(now.getMonth()+1).padStart(2,"0")+"-"+String(now.getDate()).padStart(2,"0");
-    var entry = { name:playerName||"Anonymous", score:score, winAmount:winAmount, passive:passiveIncome, strategy:strategy, timeStr:timeStr, assets:assets, date:dateStr, ending:ending };
+    var entry = { name:playerName||"Anonymous", score:score, winAmount:winAmount, passive:passiveIncome, strategy:strategy, timeStr:timeStr, assets:assets, date:dateStr, ending:ending, history:gs.netWorthHistory||[] };
     var newBoard = saveToLeaderboard(entry);
     setBoard(newBoard);
     var rank = newBoard.findIndex(function(e){return e.name===entry.name&&e.date===entry.date&&e.score===entry.score;});
@@ -3843,6 +4016,7 @@ function App() {
     setTierScreen("none"); setDebt(0); setShowFinance(null); setShowBillFinale(false);
     setNodeHistory([]); setShowTycoon(true); setVidoDebt(0); setVidoWeeks(0);
     setShowVidoCoin(false); setPassiveGlow(null); lastGlowWeek.current = -1;
+    winRef.current = amt;
     setGameState(Object.assign(initialGS(), { bigToys:[], lady:[] }));
     weeksRef.current=0; lastEvt.current=0; lastNotifWeek.current=0;
     setDaysElapsed(0); shownNotifsRef.current=[]; startT.current=Date.now();
@@ -4026,7 +4200,7 @@ function App() {
   if (screen === "ended") {
     return React.createElement(React.Fragment, null,
       React.createElement("style", null, CSS),
-      showScorecard && scorecardEntry && React.createElement(ScorecardModal, { entry:scorecardEntry, board:board, rank:scorecardRank, proStatus:proStatus, onProUpgrade:function(){setShowScorecard(false);setShowPro(true);}, onClose:function(){setShowScorecard(false);setScreen("reveal");} }),
+      showScorecard && scorecardEntry && React.createElement(ScorecardModal, { entry:scorecardEntry, board:board, rank:scorecardRank, proStatus:proStatus, history:scorecardEntry.history||[], onProUpgrade:function(){setShowScorecard(false);setShowPro(true);}, onClose:function(){setShowScorecard(false);setScreen("reveal");} }),
       showPro && React.createElement(ProUpgradeModal, { onClose:function(){setShowPro(false);}, onActivated:function(ps){ setProStatus(ps); setShowPro(false); } }),
       showLeaderboard && React.createElement(LeaderboardScreen, { board:board, onClose:function(){setShowLeaderboard(false);} })
     );
