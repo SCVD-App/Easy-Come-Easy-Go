@@ -1043,6 +1043,7 @@ function fmtFull(n) {
 const C = {
   gold: "#C9A84C", black: "#0a0a0a", dark: "#141414",
   red: "#C0392B", green: "#27ae60", white: "#f5f3ee", dim: "#777",
+  amber: "#E8A33D",
 };
 
 function initialGS() {
@@ -2626,7 +2627,7 @@ function AnimatedNumber(props) {
     }
     requestAnimationFrame(tick);
   }, [value]);
-  return React.createElement("span", null, prefix + Math.round(display).toLocaleString("en-AU") + suffix);
+  return React.createElement("span", null, (Math.round(display) < 0 ? "-" : "") + prefix + Math.abs(Math.round(display)).toLocaleString("en-AU") + suffix);
 }
 
 // ── REVEAL SCREEN ─────────────────────────────────────────
@@ -2837,7 +2838,8 @@ function HUD(props) {
   var target = calcTarget(winAmount);
   var pct = Math.min((passiveIncome / target) * 100, 100);
   var y = Math.floor(weeksElapsed / 52), w = weeksElapsed % 52;
-  var low = cash < winAmount * 0.08;
+  var negative = cash < 0;
+  var low = !negative && cash < winAmount * 0.08;
   var daysEl = daysElapsed;
 
   // Row 1: Cash | Passive | Time | Buttons
@@ -2850,8 +2852,8 @@ function HUD(props) {
       // Cash
       React.createElement("div", { style: { textAlign:"center", flex:"1 1 0" } },
         React.createElement("div", { style: { fontSize:"0.52rem", letterSpacing:"0.15em", color:C.dim, textTransform:"uppercase" } }, "Cash"),
-        React.createElement("div", { style: { fontSize:"1.25rem", fontWeight:"bold", color:low ? C.red : C.gold, animation:low ? "warn 1.4s ease-in-out infinite" : "none", lineHeight:1.1 } },
-          React.createElement(AnimatedNumber, { value: Math.max(0, cash) })
+        React.createElement("div", { style: { fontSize:"1.25rem", fontWeight:"bold", color: negative ? C.amber : low ? C.red : C.gold, animation:(low||negative) ? "warn 1.4s ease-in-out infinite" : "none", lineHeight:1.1 } },
+          React.createElement(AnimatedNumber, { value: cash })
         )
       ),
 
@@ -4406,15 +4408,17 @@ function App() {
     if(notif.paulsonStructureTrigger){setGameState(function(gs){return Object.assign({},gs,{paulsonContact:Math.max(2,gs.paulsonContact||0)});});setNodeKey("paulson_structure");setNotifResult({msg:notif.onAccept.msg,cost:0,passiveAdd:0});return;}
     if(notif.paulsonContact){
       var pc=notif.paulsonContact,pCost=notif.onAccept.cost||0,pPA=notif.onAccept.passiveAdd||0;
-      if(pCost>0)setCash(function(c){return Math.max(0,c-pCost);});
+      var wentNegative=pCost>0 && cashRef.current<pCost;
+      if(pCost>0)setCash(function(c){return c-pCost;});
       if(pPA>0)setPassiveIncome(function(p){return p+pPA;});
       setGameState(function(gs){return Object.assign({},gs,{paulsonContact:Math.max(gs.paulsonContact||0,pc),billionaireMode:pc>=4?true:gs.billionaireMode});});
       if(pc>=4)setNodeKey("paulson_opportunity");
-      setNotifResult({msg:notif.onAccept.msg,cost:pCost,passiveAdd:pPA});
+      var pMsg=notif.onAccept.msg + (wentNegative ? " Richard doesn't blink at the number. \"Yes, this sends you negative,\" he says. \"But you're in the big leagues now — the bank works for you, not the other way around. Understand there's good debt and there's bad debt. Bad debt buys you a car that depreciates the moment you drive it off the lot. Good debt buys an asset that pays you back more than it costs to hold. I will only ever put you into good debt. Pull the trigger — I'll set up a line of credit for you with the bank.\"" : "");
+      setNotifResult({msg:pMsg,cost:pCost,passiveAdd:pPA});
       return;
     }
     var oa2=notif.onAccept;
-    if(oa2.cost>0)setCash(function(c){return Math.max(0,c-oa2.cost);});
+    if(oa2.cost>0)setCash(function(c){return c-oa2.cost;});
     if(oa2.passiveAdd>0)setPassiveIncome(function(p){return p+oa2.passiveAdd;});
     setNotifResult({msg:oa2.msg,cost:oa2.cost||0,passiveAdd:oa2.passiveAdd||0});
   }, [pendingNotif]);
