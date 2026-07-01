@@ -859,6 +859,47 @@ function LeaderboardScreen(props) {
   );
 }
 
+// ── SPLASH SCREEN ─────────────────────────────────────────────
+function SplashScreen(props) {
+  var onDone = props.onDone;
+  var visibleS = useState(false); var visible = visibleS[0], setVisible = visibleS[1];
+
+  useEffect(function() {
+    var t = setTimeout(function(){ setVisible(true); }, 80);
+    return function(){ clearTimeout(t); };
+  }, []);
+
+  return React.createElement("div", { style:{
+    position:"fixed", inset:0, zIndex:900,
+    background:"#0a0a0a",
+    display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center",
+    padding:"2rem",
+    opacity: visible ? 1 : 0, transition:"opacity 0.5s ease",
+    fontFamily:"Georgia,serif"
+  }},
+    React.createElement("div", { style:{ fontSize:"3.5rem", marginBottom:"1.25rem", filter:"drop-shadow(0 0 20px #C9A84C44)" } }, "🏅"),
+    React.createElement("div", { style:{ fontSize:"0.55rem", letterSpacing:"0.5em", color:"#444", textTransform:"uppercase", marginBottom:"1.5rem" } }, "A SCVD APP"),
+    React.createElement("div", { style:{ fontSize:"2rem", fontWeight:900, color:"#C9A84C", letterSpacing:"0.06em", textAlign:"center", lineHeight:1.15, marginBottom:"0.5rem" } }, "Easy Come"),
+    React.createElement("div", { style:{ fontSize:"2rem", fontWeight:900, color:"#C9A84C", letterSpacing:"0.06em", textAlign:"center", lineHeight:1.15, marginBottom:"1rem" } }, "Easy Go"),
+    React.createElement("div", { style:{ width:"48px", height:"1px", background:"#C9A84C44", margin:"0 auto 1.25rem" } }),
+    React.createElement("div", { style:{ fontSize:"0.92rem", color:"#f5f3ee", textAlign:"center", lineHeight:1.7, marginBottom:"0.4rem", fontStyle:"italic" } }, "You just won the lottery."),
+    React.createElement("div", { style:{ fontSize:"0.92rem", color:"#C9A84C", textAlign:"center", lineHeight:1.7, marginBottom:"1.75rem", fontStyle:"italic", fontWeight:"bold" } }, "Don't blow it."),
+    React.createElement("div", { style:{ maxWidth:"320px", background:"rgba(201,168,76,0.05)", border:"1px solid rgba(201,168,76,0.15)", borderRadius:"10px", padding:"1rem 1.25rem", marginBottom:"2rem", textAlign:"center" } },
+      React.createElement("div", { style:{ fontSize:"0.75rem", color:"#888", lineHeight:1.8 } },
+        "A financial decision game. One windfall. Infinite ways to lose it. Build passive income, resist temptation, and see how long your freedom lasts."
+      )
+    ),
+    React.createElement("button", {
+      onClick: onDone,
+      style:{ background:"linear-gradient(135deg,#C9A84C,#8B6914)", border:"none", borderRadius:"8px", padding:"1rem 3rem", color:"#0a0a0a", fontSize:"1rem", fontWeight:"bold", letterSpacing:"0.15em", textTransform:"uppercase", cursor:"pointer", fontFamily:"Georgia,serif", boxShadow:"0 0 30px rgba(201,168,76,0.3)" }
+    }, "Play"),
+    React.createElement("div", { style:{ position:"absolute", bottom:"2rem", textAlign:"center" } },
+      React.createElement("div", { style:{ fontSize:"0.58rem", letterSpacing:"0.2em", color:"#333", textTransform:"uppercase", marginBottom:"0.3rem" } }, "No ads · No auto-renewal · Everyone pays the same"),
+      React.createElement("div", { style:{ fontSize:"0.55rem", color:"#222", letterSpacing:"0.15em" } }, "SCVD Apps · Queensland, Australia")
+    )
+  );
+}
+
 // ── REVISED REVEAL SCREEN WITH NAME CAPTURE ───────────────
 function RevealScreen(props) {
   var onStart = props.onStart;
@@ -1035,6 +1076,15 @@ function initialGS() {
     // History tracking for chart
     netWorthHistory: [],   // [{ month, netWorth, passive }]
     paulsonMilestones: {}, // tracks which milestones have fired
+    // KP Arc
+    kpMet: false,          // KP has made contact
+    kpTrust: 0,            // 0=stranger, 1=acquaintance, 2=ally, 3=partner
+    kpPath: null,          // null | "legacy" | "empire"
+    kpIsland: false,       // bought the Vanuatu island
+    kpCayman: false,       // set up Cayman structure
+    paulsonResigned: false, // Paulson walked
+    familyDrift: 0,        // 0-3, increases on empire path
+    kpProFired: false,     // fourth-wall Pro pitch fired
   };
 }
 
@@ -1044,11 +1094,21 @@ function initialGS() {
 function nodeRoot(gs) {
   const choices = [];
   if (gs.tycoonMode || gs.billionaireMode) choices.push({ label: "💎 Return to Empire Dashboard", next: "__tycoon__" });
-  // Bill Root one-time options accessible from home when in billionaire mode
+  // Bill Root one-time options
   if (gs.billionaireMode) {
     if (!gs.hasLicenced) choices.push({ label: "📜 Licence the IP — one-time offer", next: "bill_licence" });
     if (!gs.hasEquity) choices.push({ label: "⭐ Staff equity scheme", next: "bill_equity" });
     if (!gs.hasIpod && (gs.billNetWorth||0) >= 50000000) choices.push({ label: "🚀 IPO — go public", next: "bill_ipo" });
+  }
+  // KP Arc entries
+  if (gs.kpMet && gs.kpTrust >= 1 && !gs.kpCayman && !gs.kpPath) {
+    choices.push({ label: "⚡ Meet K.P. — he has a proposition", next: "kp_meet" });
+  }
+  if (gs.kpCayman && !gs.kpIsland && !gs.kpPath) {
+    choices.push({ label: "⚡ K.P. called — the Vanuatu opportunity", next: "kp_island_offer" });
+  }
+  if (gs.kpIsland && !gs.kpPath) {
+    choices.push({ label: "⚡ K.P. — the question", next: "kp_fork" });
   }
   if (!gs.quitJob) choices.push({ label: "💼 Quit the job", next: "quit_job" });
   choices.push({ label: gs.car ? "🚗 Buy another car" : "🚗 Buy a car", next: "buy_car" });
@@ -1057,15 +1117,22 @@ function nodeRoot(gs) {
   choices.push({ label: "📈 Invest", next: "invest" });
   choices.push({ label: "🎁 Be generous", next: "generosity" });
   const hasActed = gs.car || gs.house || gs.quitJob || gs.investments.length > 0 || gs.holidays.length > 0 || gs.givens.length > 0;
-  const text = gs.tycoonMode || gs.billionaireMode
-    ? "Home base. The empire is running. What else needs doing?"
-    : gs.investments.length >= 2
-    ? "The portfolio is growing. $30k/month passive is the goal — keep building."
-    : gs.quitJob && gs.car && gs.house
-    ? "You've got the house, the car, and the freedom. Now make sure the money outlasts you."
-    : hasActed
-    ? "Money's still in the account. What's your next move?"
-    : "The cheque just cleared. It's real. What's your first move?";
+  var text;
+  if (gs.paulsonResigned && gs.kpPath === "empire") {
+    text = "Paulson's letter arrived this morning. Two pages. You read the first paragraph and put it down. The empire doesn't stop for sentiment.";
+  } else if (gs.tycoonMode || gs.billionaireMode) {
+    text = "Home base. The empire is running. What else needs doing?";
+  } else if (gs.kpMet) {
+    text = "K.P.'s card is in your pocket. The game has changed.";
+  } else if (gs.investments.length >= 2) {
+    text = "The portfolio is growing. $30k/month passive is the goal — keep building.";
+  } else if (gs.quitJob && gs.car && gs.house) {
+    text = "You've got the house, the car, and the freedom. Now make sure the money outlasts you.";
+  } else if (hasActed) {
+    text = "Money's still in the account. What's your next move?";
+  } else {
+    text = "The cheque just cleared. It's real. What's your first move?";
+  }
   return { text, choices };
 }
 
@@ -3298,6 +3365,137 @@ function nodeFunStuff(gs) {
       { label: "💍 For the Ladies — the finer things", next: "for_the_ladies" },
     ] };
 }
+// ── K.P. ARC NODES ───────────────────────────────────────────
+function nodeKpMeet(gs) {
+  return {
+    text: "The venue has no sign outside. A booth in the back. K.P. is already there when you arrive — nursing a scotch, watching the room the way a man watches a room when he owns it. He looks you up and down once. Then he nods at the seat across from him.",
+    choices: [
+      { label: "Sit down", next: "kp_talk" },
+      { label: "Order a drink first — make him wait", next: "kp_talk_wait" },
+    ]
+  };
+}
+
+function nodeKpTalk(gs) {
+  return {
+    text: '"I\'ve made a lot of money," K.P. says. "Some of it the way your accountant would approve of. Most of it the way he wouldn\'t. The difference between those two things is about four hundred million dollars." He slides a card across the table. One number. No name. "When you\'re ready to talk seriously, call that."',
+    choices: [
+      { label: "Take the card", next: "kp_card_taken", action: function(g){ return Object.assign({},g,{kpTrust:2}); } },
+      { label: "Leave the card on the table", next: "root" },
+    ]
+  };
+}
+
+function nodeKpTalkWait(gs) {
+  return {
+    text: "K.P. watches you cross the room to the bar, order unhurriedly, and take your time walking back. When you sit down he's smiling for the first time. \"Good,\" he says. \"Most people rush. Rushing is expensive.\" The conversation that follows is the most interesting one you've had in years.",
+    choices: [
+      { label: "Ask him about the structures", next: "kp_card_taken", action: function(g){ return Object.assign({},g,{kpTrust:3}); } },
+    ]
+  };
+}
+
+function nodeKpCardTaken(gs) {
+  return {
+    text: "A week later you call the number. K.P. answers on the second ring. \"I was wondering when you'd get around to it,\" he says. \"I've got something to show you. Not on the phone.\"",
+    choices: [
+      { label: "Meet him", next: "kp_cayman" },
+      { label: "Tell him you need time to think", next: "root" },
+    ]
+  };
+}
+
+function nodeKpCayman(gs) {
+  return {
+    text: "K.P. spreads three documents across the table. \"A Cayman Islands trust,\" he says. \"Legally established. Your assets flow through here before they touch Australian soil. The ATO sees what the ATO needs to see. The rest stays where the sun doesn't shine on it.\" He taps the documents. \"Four hundred thousand to set it up. Saves you that every eight weeks.\"\n\nYour phone buzzes. Paulson.",
+    choices: [
+      { label: "Read Paulson's message", next: "kp_paulson_warning" },
+      { label: "Sign the documents — read Paulson later", next: "kp_signed", cost: 400000, action: function(g){ return Object.assign({},g,{kpCayman:true,dubiousScore:(g.dubiousScore||0)+15,passiveIncome:g.passiveIncome+8500}); } },
+    ]
+  };
+}
+
+function nodeKpPaulsonWarning(gs) {
+  return {
+    text: "Paulson's message: \"I know where you are and I know who you're with. I've seen this before. You've become a big fish in a small pond and the sharks are inviting you into their pool. What K.P. is showing you is not above board. Not slightly grey — not above board. Be careful. Call me before you sign anything.\"\n\nK.P. watches you put the phone away. \"Your accountant?\" he says. \"He's a good man. Good men are expensive to keep and cheap to replace.\"",
+    choices: [
+      { label: "Sign anyway — the numbers make sense", next: "kp_signed", cost: 400000, action: function(g){ return Object.assign({},g,{kpCayman:true,dubiousScore:(g.dubiousScore||0)+15,passiveIncome:g.passiveIncome+8500}); } },
+      { label: "Walk away — Paulson's right", next: "kp_walked", action: function(g){ return Object.assign({},g,{kpTrust:0}); } },
+    ]
+  };
+}
+
+function nodeKpSigned(gs) {
+  return {
+    text: "The structure is clean on paper. Elegant, even. $8,500 a month flows back that would have gone to the ATO. K.P. shakes your hand. \"Now we're getting somewhere,\" he says. \"Come back when you're ready for the next conversation.\"",
+    outcome: true,
+    choices: [{ label: "→ Back to it", next: "kp_island_offer" }],
+  };
+}
+
+function nodeKpWalked(gs) {
+  return {
+    text: "You leave the documents unsigned. K.P. doesn't look surprised. \"Come back when you've thought about it,\" he says. \"The offer doesn't expire. Men like me are patient.\"\n\nPaulson calls on the drive home. \"Good,\" he says. \"I mean it.\"",
+    outcome: true,
+    choices: [{ label: "→ Back to it", next: "root" }],
+  };
+}
+
+function nodeKpIslandOffer(gs) {
+  return {
+    text: "Three months later K.P. calls. \"I've got a man in Vanuatu. Private island. 4.2 hectares. Legal residency, favourable tax treaty, and a beach that would make God envious. $3.2 million. I'll introduce you.\"\n\nThere's a pause. \"One other thing. Once you're a Vanuatu resident, the Cayman structure becomes... cleaner. Substantially cleaner. Paulson won't like it.\"\n\nHe's right. Paulson won't like it.",
+    choices: [
+      { label: "Buy the island — $3.2M", next: "kp_island_bought", cost: 3200000, action: function(g){ return Object.assign({},g,{kpIsland:true,dubiousScore:(g.dubiousScore||0)+25,passiveIncome:g.passiveIncome+14000}); } },
+      { label: "Too far — decline", next: "kp_island_declined" },
+    ]
+  };
+}
+
+function nodeKpIslandBought(gs) {
+  return {
+    text: "The documents are signed in a lawyer's office overlooking Port Vila harbour. The island is yours. The tax position is now extraordinary. The passive income from the restructured trust adds $14,000 a month.\n\nThen K.P. asks the question you knew was coming eventually.\n\n\"What are you building this for?\"",
+    outcome: true,
+    choices: [{ label: "Answer him", next: "kp_fork" }],
+  };
+}
+
+function nodeKpIslandDeclined(gs) {
+  return {
+    text: "\"Fair enough,\" K.P. says. \"Everyone has a line.\" He doesn't sound disappointed — more like he's filed the information away. \"The Cayman structure stays as is. You know where I am.\"\n\nPaulson sends a single message: \"Good.\"",
+    outcome: true,
+    choices: [{ label: "→ Back to it", next: "root" }],
+  };
+}
+
+// ── THE FORK ─────────────────────────────────────────────────
+function nodeKpFork(gs) {
+  return {
+    text: "K.P. leans back. The harbour glitters outside the window. He's watching you the way he watched you the first night — measuring something.\n\n\"Most men who win money stay the same person with more stuff. A few become something else entirely. I need to know which one you are before we go further.\"\n\n\"So. What are you building this for?\"",
+    choices: [
+      { label: "\"For my family. Something that outlasts me.\"", next: "kp_path_legacy", action: function(g){ return Object.assign({},g,{kpPath:"legacy"}); } },
+      { label: "\"For me. I want to see how far it goes.\"", next: "kp_path_empire", action: function(g){ return Object.assign({},g,{kpPath:"empire",dubiousScore:(g.dubiousScore||0)+10}); } },
+    ]
+  };
+}
+
+function nodeKpPathLegacy(gs) {
+  return {
+    text: "K.P. nods slowly. \"Good answer. Means you've still got a ceiling. Ceilings are useful — they tell you where the floor is.\"\n\nHe refills your glass. \"We can still do a lot together. Just know where you stop.\"\n\nYou call Paulson on the way back to the hotel. He picks up on the first ring. \"How did it go?\" You tell him. There's a pause. \"I can work with that,\" he says.",
+    outcome: true,
+    choices: [{ label: "→ Keep building", next: "root" }],
+    action: function(g){ return Object.assign({},g,{kpPath:"legacy",kpTrust:3}); }
+  };
+}
+
+function nodeKpPathEmpire(gs) {
+  return {
+    text: "K.P. smiles for only the second time you've seen. It doesn't make him look warmer.\n\n\"Now we're talking.\"\n\nHe makes a call. Three calls, actually — in rapid succession, in a language you don't recognise. When he puts the phone down the landscape has changed. New structures. New contacts. A media acquisition. Murray Cresswell's name comes up.\n\n\"Your councillor friend,\" K.P. says. \"He's got something. Raw. Needs polish. I've made men like him before.\"\n\nYou call Paulson that night. He listens without interrupting. Then:\n\n\"I need you to hear me clearly. I am done. I'll send you a letter.\"",
+    outcome: true,
+    choices: [{ label: "→ The empire begins", next: "root" }],
+    action: function(g){ return Object.assign({},g,{kpPath:"empire",kpTrust:3,paulsonResigned:true,passiveIncome:g.passiveIncome+22000,dubiousScore:(g.dubiousScore||0)+30}); }
+  };
+}
+
 function nodeBigBoysToys(gs) {
   return { text: (gs.bigToys||[]).length > 0 ? "The garage is getting interesting. What's next?" : "Sparkly depreciation. Every person's birthright.",
     choices: [
@@ -3395,6 +3593,12 @@ function nodeBuyBizSteve(gs) {
   var extraNodes = {
     fun_stuff: nodeFunStuff,
     big_boys_toys: nodeBigBoysToys,
+    kp_meet: nodeKpMeet, kp_talk: nodeKpTalk, kp_talk_wait: nodeKpTalkWait,
+    kp_card_taken: nodeKpCardTaken, kp_cayman: nodeKpCayman,
+    kp_paulson_warning: nodeKpPaulsonWarning, kp_signed: nodeKpSigned,
+    kp_walked: nodeKpWalked, kp_island_offer: nodeKpIslandOffer,
+    kp_island_bought: nodeKpIslandBought, kp_island_declined: nodeKpIslandDeclined,
+    kp_fork: nodeKpFork, kp_path_legacy: nodeKpPathLegacy, kp_path_empire: nodeKpPathEmpire,
     toy_f65: nodeToyF65, toy_boat: nodeToyBoat, toy_heli: nodeToyHeli, toy_moto: nodeToyMoto,
     toy_guitars: nodeToyGuitars, toy_golf: nodeToyGolf, toy_track: nodeToyTrack,
     for_the_ladies: nodeForTheLadies,
@@ -3432,7 +3636,39 @@ function NotificationInbox(props) {
   var inbox = props.inbox || [];
   var queue = props.queue || [];
   var onClose = props.onClose;
+  var onProUpgrade = props.onProUpgrade || function(){};
   var count = queue.length + inbox.length;
+
+  function renderMessage(notif, i, isPending) {
+    var isKP = notif.type === "kp" || notif.sender === "K.P.";
+    var isPaulson = notif.type === "paulson" || notif.sender === "Richard Paulson";
+    var senderColor = isKP ? "#C0392B" : isPaulson ? "#C9A84C" : "#f5f3ee";
+    var bgColor = isKP ? "#1a0000" : isPending && i===0 ? "#1a1a00" : "transparent";
+    var borderColor = isKP ? "#C0392B22" : "#1a1a1a";
+
+    return React.createElement("div", { key:(isPending?"q":"i")+i, style:{
+      padding:"0.85rem 1rem", borderBottom:"1px solid "+borderColor,
+      background: bgColor
+    }},
+      React.createElement("div", { style:{ display:"flex", justifyContent:"space-between", marginBottom:"0.3rem" } },
+        React.createElement("div", { style:{ fontSize:"0.78rem", color:senderColor, fontWeight:"bold" } },
+          isKP ? "⚡ K.P." : isPaulson ? "📊 Richard Paulson" : (notif.from || notif.sender || "Message")
+        ),
+        isPending && i===0 && React.createElement("div", { style:{ fontSize:"0.6rem", color:"#C9A84C", textTransform:"uppercase", letterSpacing:"0.1em" } }, "New")
+      ),
+      React.createElement("div", { style:{ fontSize:"0.78rem", color:"#888", fontWeight:"bold", marginBottom:"0.25rem" } },
+        notif.preview || ""
+      ),
+      notif.body && React.createElement("div", { style:{ fontSize:"0.72rem", color:"#666", lineHeight:1.6, marginTop:"0.25rem" } },
+        notif.body
+      ),
+      // KP Pro CTA
+      isKP && notif.cta === "pro" && React.createElement("button", {
+        onClick: function(e) { e.stopPropagation(); onProUpgrade(); },
+        style:{ marginTop:"0.75rem", width:"100%", background:"linear-gradient(135deg,#7a0000,#C0392B)", border:"none", borderRadius:"6px", padding:"0.65rem", color:"#fff", fontSize:"0.8rem", fontWeight:"bold", cursor:"pointer", letterSpacing:"0.08em", fontFamily:"Georgia,serif" }
+      }, "Buy Pro — Come have a drink 🥃")
+    );
+  }
 
   return React.createElement("div", {
     style:{ position:"fixed", inset:0, zIndex:550,
@@ -3460,35 +3696,15 @@ function NotificationInbox(props) {
       ),
       React.createElement("div", { style:{ overflowY:"auto", flex:1 } },
         count === 0
-          ? React.createElement("div", { style:{ padding:"2rem", textAlign:"center", color:"#444", fontSize:"0.85rem" } },
-              "No messages"
-            )
+          ? React.createElement("div", { style:{ padding:"2rem", textAlign:"center", color:"#444", fontSize:"0.85rem" } }, "No messages")
           : React.createElement(React.Fragment, null,
-              // Active queue items
-              queue.map(function(notif, i) {
-                return React.createElement("div", { key:i, style:{
-                  padding:"0.85rem 1rem", borderBottom:"1px solid #1a1a1a",
-                  background: i===0 ? "#1a1a00" : "transparent"
-                }},
-                  React.createElement("div", { style:{ display:"flex", justifyContent:"space-between", marginBottom:"0.2rem" } },
-                    React.createElement("div", { style:{ fontSize:"0.78rem", color:"#f5f3ee", fontWeight:"bold" } }, notif.from || "Message"),
-                    i===0 && React.createElement("div", { style:{ fontSize:"0.6rem", color:"#C9A84C", textTransform:"uppercase", letterSpacing:"0.1em" } }, "Pending")
-                  ),
-                  React.createElement("div", { style:{ fontSize:"0.72rem", color:"#888", lineHeight:1.5 } },
-                    notif.preview || (notif.body ? notif.body.substring(0,80)+"..." : "")
-                  )
-                );
-              }),
-              // Archived inbox items
+              queue.map(function(notif, i) { return renderMessage(notif, i, true); }),
               inbox.map(function(notif, i) {
-                return React.createElement("div", { key:"i"+i, style:{
-                  padding:"0.85rem 1rem", borderBottom:"1px solid #1a1a1a",
-                  opacity:0.5
-                }},
-                  React.createElement("div", { style:{ fontSize:"0.78rem", color:"#888" } }, notif.from || "Message"),
-                  React.createElement("div", { style:{ fontSize:"0.72rem", color:"#555", lineHeight:1.5 } },
-                    notif.preview || ""
-                  )
+                return React.createElement("div", { key:"i"+i, style:{ padding:"0.85rem 1rem", borderBottom:"1px solid #1a1a1a", opacity:0.55 } },
+                  React.createElement("div", { style:{ fontSize:"0.78rem", color: notif.type==="kp"||notif.sender==="K.P." ? "#C0392B88" : "#888" } },
+                    notif.type==="kp"||notif.sender==="K.P." ? "⚡ K.P." : notif.type==="paulson"||notif.sender==="Richard Paulson" ? "📊 Richard Paulson" : (notif.from||notif.sender||"Message")
+                  ),
+                  React.createElement("div", { style:{ fontSize:"0.72rem", color:"#555", lineHeight:1.5 } }, notif.preview || "")
                 );
               })
             )
@@ -3669,6 +3885,7 @@ function App() {
   var proStatusS = useState(function(){ return loadProStatus(); }); var proStatus = proStatusS[0], setProStatus = proStatusS[1];
   var showProS = useState(false); var showPro = showProS[0], setShowPro = showProS[1];
   var showGlobalLBoardS = useState(false); var showGlobalLBoard = showGlobalLBoardS[0], setShowGlobalLBoard = showGlobalLBoardS[1];
+  var showSplashS = useState(function(){ return !loadProStatus(); }); var showSplash = showSplashS[0], setShowSplash = showSplashS[1];
   var shownNotifsRef = useRef([]);
   var lastNotifWeek = useRef(0);
 
@@ -3905,6 +4122,58 @@ function App() {
           var actualPassive = passRef.current * 12;
           var diff = actualPassive - termDepositAlt;
           queueNotif({ sender:"Richard Paulson", preview:"Year one complete.", body:"Twelve months in. A term deposit on your win would have paid roughly $" + termDepositAlt.toLocaleString() + " this year. Your passive income generated $" + Math.round(actualPassive).toLocaleString() + ". Difference: " + (diff >= 0 ? "+" : "") + "$" + Math.round(diff).toLocaleString() + ". " + (diff >= 0 ? "You've outperformed the do-nothing strategy." : "Still building — stay the course."), type:"paulson" });
+        }
+
+        // ── KP MILESTONES ──
+        var kpGs = gsRef.current;
+        var kpNW = snapNetWorth;
+
+        // KP Pro pitch — fires once when net worth > $3M, no Pro, 2+ investments
+        if (kpNW >= 3000000 && !kpGs.kpProFired && !proStatus && (kpGs.investments||[]).length >= 2) {
+          setGameState(function(g){return Object.assign({},g,{kpProFired:true});});
+          queueNotif({
+            sender:"K.P.", type:"kp", cta:"pro",
+            preview:"I've been watching you.",
+            body:"Not bad for a lotto winner — most of them are broke inside twelve months. You've shown some discipline. Some patience. Maybe some brains.\n\nBut I haven't seen anything yet that tells me you're serious.\n\nThe real game — the one that doesn't appear in any newspaper and never will — that's not for spectators. You want a seat at that table, you need to show me you're committed.\n\nBuy a token. Come have a drink. We'll talk about what serious money actually looks like.\n\n— K.P."
+          });
+        }
+
+        // KP first contact — net worth > $5M, has Pro, hasn't met KP yet
+        if (kpNW >= 5000000 && proStatus && !kpGs.kpMet) {
+          setGameState(function(g){return Object.assign({},g,{kpMet:true,kpTrust:1});});
+          queueNotif({
+            sender:"K.P.", type:"kp",
+            preview:"Heard you won the lotto. Come have a drink.",
+            body:"I know a place. Tuesday evening. Don't wear a tie — this isn't that kind of meeting.\n\n— K.P."
+          });
+        }
+
+        // KP empire path — Paulson resignation letter
+        if (kpGs.kpPath === "empire" && kpGs.paulsonResigned && !(kpGs.paulsonMilestones||{}).paulsonLetter) {
+          setGameState(function(g){return Object.assign({},g,{paulsonMilestones:Object.assign({},g.paulsonMilestones,{paulsonLetter:true})});});
+          queueNotif({
+            sender:"Richard Paulson", type:"paulson",
+            preview:"My resignation — for the record.",
+            body:"I've been your advisor for some time now. I've watched you build something genuinely impressive. I've also watched you become someone I don't recognise.\n\nThe structures you've entered into are not just aggressive tax planning. They are, in my considered opinion, illegal. I am required by law to cease acting for you immediately.\n\nI wish you well. I mean that sincerely.\n\nDon't call me when it unravels. Not because I won't care. Because I won't be able to help.\n\n— Richard Paulson, CPA"
+          });
+        }
+
+        // Family drift — empire path
+        if (kpGs.kpPath === "empire") {
+          var fd = kpGs.familyDrift || 0;
+          var pm2 = kpGs.paulsonMilestones || {};
+          if (month >= 3 && fd < 1 && !pm2.familyDrift1) {
+            setGameState(function(g){return Object.assign({},g,{familyDrift:1,paulsonMilestones:Object.assign({},g.paulsonMilestones,{familyDrift1:true})});});
+            queueNotif({ sender:"Mum", type:"family", preview:"Haven't heard from you in a while.", body:"Just checking in. Your sister said you've been busy. Give me a call when you get a chance. Dad wants to know if you're coming for Christmas.\n\n— Mum" });
+          }
+          if (month >= 6 && fd < 2 && !pm2.familyDrift2) {
+            setGameState(function(g){return Object.assign({},g,{familyDrift:2,paulsonMilestones:Object.assign({},g.paulsonMilestones,{familyDrift2:true})});});
+            queueNotif({ sender:"Mum", type:"family", preview:"Your sister's engagement dinner.", body:"We had the dinner last Saturday. We kept a seat for you. She understood.\n\n— Mum" });
+          }
+          if (month >= 12 && fd < 3 && !pm2.familyDrift3) {
+            setGameState(function(g){return Object.assign({},g,{familyDrift:3,paulsonMilestones:Object.assign({},g.paulsonMilestones,{familyDrift3:true})});});
+            queueNotif({ sender:"Unknown", type:"family", preview:"Sarah's wedding was last Saturday.", body:"Sarah's wedding was last Saturday.\n\nThe flowers were beautiful. She looked happy.\n\nYou would have liked it." });
+          }
         }
       }
       var exp = annRef.current / 52;
@@ -4165,6 +4434,14 @@ function App() {
   },[]);
   var handleSailOff = useCallback(function(tier){setSailTier(tier||"suburban");setTierScreen("sailoff");setTimeout(function(){buildScorecard(tier||"sailoff");setScreen("ended");},500);},[passiveIncome,winAmount]);
 
+  // ── SPLASH ──
+  if (screen === "reveal" && showSplash) {
+    return React.createElement(React.Fragment, null,
+      React.createElement("style", null, CSS),
+      React.createElement(SplashScreen, { onDone: function(){ setShowSplash(false); } })
+    );
+  }
+
   // ── REVEAL SCREEN ──
   if (screen === "reveal") {
     return React.createElement(React.Fragment, null,
@@ -4242,9 +4519,9 @@ function App() {
     passiveGlow&&React.createElement(PassiveGlowOverlay,{amount:passiveGlow.amount,message:passiveGlow.message}),
     showInbox&&React.createElement(NotificationInbox,{
       inbox:inbox, queue:notifQueue,
+      onProUpgrade:function(){setShowInbox(false);setShowPro(true);},
       onClose:function(){
         setShowInbox(false);
-        // If no active notification showing, go home
         if(notifQueue.length===0) handleHome();
       }
     }),
