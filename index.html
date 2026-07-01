@@ -478,7 +478,7 @@ function ScorecardModal(props) {
   // Find player rank in board
   var rankStr = rank !== null ? "#" + (rank+1) + " on your leaderboard" : "Not ranked yet";
 
-  var globalSubmitState = useState(null); var globalSubmit = globalSubmitState[0], setGlobalSubmit = globalSubmitState[1];
+  var onProUpgrade = props.onProUpgrade || function(){};
   var submittingState = useState(false); var submitting = submittingState[0], setSubmitting = submittingState[1];
 
   async function handleGlobalSubmit() {
@@ -592,9 +592,9 @@ function ScorecardModal(props) {
                     style:{ width:"100%", background:"transparent", border:"1px solid #C9A84C44", borderRadius:"6px", padding:"0.6rem", color:"#C9A84C", fontSize:"0.78rem", cursor:"pointer", letterSpacing:"0.05em" }
                   }, submitting ? "Submitting…" : "🌏 Submit to Global Leaderboard")
             )
-          : entry.score !== null && React.createElement("div", { style:{ marginBottom:"1rem", padding:"0.6rem 1rem", borderRadius:"6px", background:"#0d0d00", border:"1px solid #C9A84C22", textAlign:"center", fontSize:"0.72rem", color:"#555" } },
-              "✨ ", React.createElement("span", { style:{ color:"#C9A84C" } }, "Pro"), " — post to the global leaderboard"
-            ),
+          : entry.score !== null && React.createElement("button", { onClick:onProUpgrade,
+              style:{ width:"100%", marginBottom:"1rem", padding:"0.6rem 1rem", borderRadius:"6px", background:"#0d0d00", border:"1px solid #C9A84C44", textAlign:"center", fontSize:"0.82rem", color:"#C9A84C", cursor:"pointer", fontFamily:"Georgia,serif" }
+            }, "✨ Go Pro — unlock global leaderboard & more"),
 
         // Buttons
         React.createElement("div", { style:{ display:"flex", gap:"0.5rem" } },
@@ -2683,8 +2683,16 @@ function HUD(props) {
         React.createElement("div", { style: { fontSize:"0.95rem", color:C.white, fontWeight:"bold", lineHeight:1.1 } }, formatClock(daysEl))
       ),
 
-      // Debt (only if present) — shown in row 2 to avoid clipping
+      // Buttons — pro + inbox + home
       React.createElement("div", { style: { display:"flex", gap:"0.35rem", flexShrink:0, alignItems:"center" } },
+        // Pro button
+        React.createElement("button", {
+          onClick: function() { if (props.onPro) props.onPro(); },
+          title: "Pro Access",
+          style: { background: props.proStatus ? "linear-gradient(135deg,#1a1200,#0d0a00)" : "transparent",
+            border:"1px solid " + (props.proStatus ? "#C9A84C88" : "#C9A84C33"),
+            borderRadius:"6px", padding:"0.35rem 0.5rem", color:"#C9A84C", fontSize:"0.7rem", cursor:"pointer", lineHeight:1 }
+        }, props.proStatus ? "⭐" : "✨"),
         // Inbox button with badge
         React.createElement("div", { style:{ position:"relative" } },
           React.createElement("button", {
@@ -2830,6 +2838,10 @@ function StatusBar(props) {
   if (gs.givens.length > 0) items.push(React.createElement("span", { key:"give" }, "❤️ ", React.createElement("span", { style:{color:"#e88"} }, "Gave: " + gs.givens.join(", "))));
   if (annualCosts > 0) items.push(React.createElement("span", { key:"costs" }, "🔥 ", React.createElement("span", { style:{color:C.red} }, "Running costs: $" + annualCosts.toLocaleString() + "/yr")));
   if (gs.holidays.length > 0) items.push(React.createElement("span", { key:"hols" }, "✈️ ", React.createElement("span", { style:{color:C.dim} }, gs.holidays.join(", "))));
+  // Tycoon assets
+  (gs.tycoonAssets||[]).forEach(function(a, i) {
+    items.push(React.createElement("span", { key:"tycoon"+i }, a.icon+" ", React.createElement("span", { style:{color:C.gold} }, a.name + (a.passiveIncome ? " (+$" + a.passiveIncome.toLocaleString() + "/mo)" : ""))));
+  });
   return React.createElement("div", { style: { maxWidth:"700px", margin:"0 auto 2rem", padding:"0 1rem" } },
     React.createElement("div", { style: { background:C.dark, border:"1px solid #252525", borderRadius:"6px", padding:"0.9rem 1.3rem", fontSize:"0.78rem", color:C.dim } },
       React.createElement("div", { style: { letterSpacing:"0.15em", textTransform:"uppercase", marginBottom:"0.5rem", fontSize:"0.6rem" } }, "Your World"),
@@ -4014,7 +4026,8 @@ function App() {
   if (screen === "ended") {
     return React.createElement(React.Fragment, null,
       React.createElement("style", null, CSS),
-      showScorecard && scorecardEntry && React.createElement(ScorecardModal, { entry:scorecardEntry, board:board, rank:scorecardRank, proStatus:proStatus, onClose:function(){setShowScorecard(false);setScreen("reveal");} }),
+      showScorecard && scorecardEntry && React.createElement(ScorecardModal, { entry:scorecardEntry, board:board, rank:scorecardRank, proStatus:proStatus, onProUpgrade:function(){setShowScorecard(false);setShowPro(true);}, onClose:function(){setShowScorecard(false);setScreen("reveal");} }),
+      showPro && React.createElement(ProUpgradeModal, { onClose:function(){setShowPro(false);}, onActivated:function(ps){ setProStatus(ps); setShowPro(false); } }),
       showLeaderboard && React.createElement(LeaderboardScreen, { board:board, onClose:function(){setShowLeaderboard(false);} })
     );
   }
@@ -4042,7 +4055,7 @@ function App() {
 
   return React.createElement("div",{style:{minHeight:"100vh",background:C.black,color:C.white,fontFamily:"Georgia,serif"}},
     React.createElement("style",null,CSS + "@keyframes passiveGlow{0%{opacity:0}15%{opacity:1}70%{opacity:1}100%{opacity:0}} @keyframes passiveSlide{0%{opacity:0;transform:translateY(8px)}15%{opacity:1;transform:translateY(0)}70%{opacity:1;transform:translateY(0)}100%{opacity:0;transform:translateY(-12px)}} @keyframes edgeGlow{0%{opacity:0}20%{opacity:1}65%{opacity:1}100%{opacity:0}} @keyframes coinSpin{0%{transform:rotateY(0deg)}50%{transform:rotateY(90deg)}100%{transform:rotateY(180deg)}}"),
-    React.createElement(HUD,{cash:cash,passiveIncome:passiveIncome,weeksElapsed:weeksElapsed,daysElapsed:daysElapsed,winAmount:winAmount,debt:debt,vidoDebt:vidoDebt,gameState:gameState,onHome:handleHome,onInbox:function(){setShowInbox(true);},inboxCount:notifQueue.length+inbox.length}),
+    React.createElement(HUD,{cash:cash,passiveIncome:passiveIncome,weeksElapsed:weeksElapsed,daysElapsed:daysElapsed,winAmount:winAmount,debt:debt,vidoDebt:vidoDebt,gameState:gameState,onHome:handleHome,onInbox:function(){setShowInbox(true);},inboxCount:notifQueue.length+inbox.length,onPro:function(){setShowPro(true);},proStatus:proStatus}),
     React.createElement("div",{style:{minHeight:"calc(100vh - 80px)",paddingBottom:"3rem"}},content),
     showBillFinale&&React.createElement(BillionaireScreen,{gameState:gameState,netWorth:gameState.billNetWorth||0,onRestart:function(){buildScorecard("billionaire");setScreen("ended");}}),
     pendingNotif&&React.createElement(NotificationPopup,{notif:pendingNotif,onAccept:handleNotifAccept,onReject:handleNotifReject}),
@@ -4064,7 +4077,8 @@ function App() {
     showVidoCoin&&React.createElement(VidoCoinFlip,{playerName:playerName,vidoDebt:vidoCoinDebt,
       onSurvive:function(){setVidoDebt(vidoCoinDebt);vidoDebtRef.current=vidoCoinDebt;setVidoWeeks(0);setShowVidoCoin(false);setPendingEvent({text:"🔪 Six months. Vido pockets the coin. "+fmtFull(vidoCoinDebt)+" outstanding. The clock is already running.",type:"bad",cost:0});},
       onDeath:function(){setShowVidoCoin(false);setScreen("tombstone");}
-    })
+    }),
+    showPro&&React.createElement(ProUpgradeModal,{onClose:function(){setShowPro(false);},onActivated:function(ps){setProStatus(ps);setShowPro(false);}})
   );
 }
 
