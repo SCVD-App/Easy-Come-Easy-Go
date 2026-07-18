@@ -4005,8 +4005,8 @@ function App() {
       if (p4) setTimeout(function(){setPendingNotif(p4);},3000);
       return;
     }
-    // Paulson personal favour — clean alternative route to billionaire mode
-    if (pc >= 2 && !gameState.billionaireMode && !gameState.paulsonFavorPath && shownNotifsRef.current.indexOf("paulson_favor") < 0) {
+    // Paulson personal favour — clean alternative route to billionaire mode. Gated on pc>=3 (after the $3M co-investment deal) so the personal ask lands only once real money has already changed hands between you and Richard.
+    if (pc >= 3 && !gameState.billionaireMode && !gameState.paulsonFavorPath && shownNotifsRef.current.indexOf("paulson_favor") < 0) {
       shownNotifsRef.current = shownNotifsRef.current.concat(["paulson_favor"]);
       setTimeout(function() {
         setPendingNotif({ id:"paulson_favor", type:"call", tier:"legit", from:"Richard Paulson",
