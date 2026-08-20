@@ -173,18 +173,17 @@ async function fetchGlobalLeaderboard() {
 function ProUpgradeModal(props) {
   var onClose = props.onClose;
   var onActivated = props.onActivated;
-  var tabState = useState("activate"); var tab = tabState[0], setTab = tabState[1];
+  var tabState = useState(props.initialTab || "activate"); var tab = tabState[0], setTab = tabState[1];
   var tokenState = useState(""); var tokenInput = tokenState[0], setTokenInput = tokenState[1];
   var statusState = useState(null); var status = statusState[0], setStatus = statusState[1];
   var loadingState = useState(false); var loading = loadingState[0], setLoading = loadingState[1];
   var emailState = useState(""); var email = emailState[0], setEmail = emailState[1];
-  var tierState = useState("savvy"); var selectedTier = tierState[0], setSelectedTier = tierState[1];
+  var tierState = useState(props.presetTier || "allin"); var selectedTier = tierState[0], setSelectedTier = tierState[1];
   var checkoutStatusState = useState(null); var checkoutStatus = checkoutStatusState[0], setCheckoutStatus = checkoutStatusState[1];
 
   var tiers = [
-    { id:"taster",  label:"Taster",        price:"$1.50",  duration:"1 month",   note:"Try it out" },
-    { id:"savvy",   label:"Savvy Investor", price:"$7.50",  duration:"6 months",  note:"Best value" },
-    { id:"tycoon",  label:"The Tycoon",     price:"$10.00", duration:"12 months", note:"Full year" },
+    { id:"toe",   label:"Dip Your Toe", price:"$6.00",  duration:"30 days",  note:"Live the high life for a month" },
+    { id:"allin", label:"All In",       price:"$19.99", duration:"lifetime", note:"Go all the way — forever" },
   ];
 
   async function handleValidate() {
@@ -257,7 +256,7 @@ function ProUpgradeModal(props) {
           React.createElement("textarea", {
             value: tokenInput,
             onChange: function(e){ setTokenInput(e.target.value); },
-            placeholder: "eceg_tycoon_365_abc123...",
+            placeholder: "eceg_allin_forever_abc123...",
             rows: 3,
             style:{ width:"100%", background:"#111", border:"1px solid #C9A84C33", borderRadius:"6px", padding:"0.75rem", color:"#f5f3ee", fontSize:"0.82rem", fontFamily:"monospace", resize:"none", outline:"none" }
           }),
@@ -306,6 +305,59 @@ function ProUpgradeModal(props) {
             "One-time payment. No subscription. No auto-renewal.", React.createElement("br"),
             "Token delivered via email. Same price for everyone."
           )
+        )
+      )
+    )
+  );
+}
+
+// ── PAULSON'S ACT 2 GATE ──────────────────────────────────
+// The in-story decision point. Every path into Act 2 (billionaireMode /
+// tycoonMode) routes through here instead of flipping those flags directly.
+// Three choices, matching what the real Paulson would actually offer:
+// dip your toe (30 days), go all in (lifetime), or walk away and keep
+// playing the free game — no dead end, no guilt-trip, just an honest choice.
+function PaulsonGateModal(props) {
+  var onChoose = props.onChoose;   // (tierId) => void — opens the real purchase flow
+  var onDecline = props.onDecline; // () => void — closes with no state change at all
+
+  return React.createElement("div", { style:{ position:"fixed", inset:0, zIndex:600, display:"flex", alignItems:"center", justifyContent:"center", background:"rgba(0,0,0,0.94)", padding:"1rem", overflowY:"auto" } },
+    React.createElement("div", { style:{ width:"100%", maxWidth:"440px", background:"linear-gradient(180deg,#1a1200 0%,#0a0a0a 100%)", border:"1px solid #C9A84C44", borderRadius:"12px", overflow:"hidden", boxShadow:"0 0 60px #C9A84C18" } },
+
+      // Header — matches Paulson's other in-game notification styling
+      React.createElement("div", { style:{ background:"linear-gradient(135deg,#1a1200,#0d0d00)", borderBottom:"1px solid #C9A84C33", padding:"1.25rem 1.5rem" } },
+        React.createElement("div", { style:{ fontSize:"0.6rem", letterSpacing:"0.3em", color:"#C9A84C", textTransform:"uppercase", marginBottom:"0.2rem" } }, "Richard Paulson · Southrock Capital"),
+        React.createElement("div", { style:{ fontSize:"1.05rem", fontWeight:"bold", color:"#f5f3ee" } }, "The Real Conversation")
+      ),
+
+      React.createElement("div", { style:{ padding:"1.5rem" } },
+        React.createElement("p", { style:{ color:"#ccc", fontSize:"0.88rem", lineHeight:1.8, marginBottom:"1.5rem" } },
+          "\u201CYou've proven to me you can go all the way. But I understand if you're a bit hesitant. You can dip your toe in the water for $6 and live the high life for the next 30 days \u2014 or you can shoot for the stars and go all in for $19.99.\u201D"
+        ),
+
+        // Toe — 30 days
+        React.createElement("button", { onClick:function(){ onChoose("toe"); },
+          style:{ width:"100%", textAlign:"left", marginBottom:"0.6rem", padding:"0.9rem 1rem", borderRadius:"8px", border:"1px solid #C9A84C44", background:"#111", cursor:"pointer" }
+        },
+          React.createElement("div", { style:{ fontSize:"0.85rem", fontWeight:"bold", color:"#C9A84C" } }, "Dip your toe — $6.00"),
+          React.createElement("div", { style:{ fontSize:"0.72rem", color:"#777", marginTop:"0.15rem" } }, "30 days. Live the high life, no long-term commitment.")
+        ),
+
+        // All in — lifetime
+        React.createElement("button", { onClick:function(){ onChoose("allin"); },
+          style:{ width:"100%", textAlign:"left", marginBottom:"1.25rem", padding:"0.9rem 1rem", borderRadius:"8px", border:"1px solid #C9A84C", background:"linear-gradient(135deg,#1a1200,#0d0a00)", cursor:"pointer" }
+        },
+          React.createElement("div", { style:{ fontSize:"0.85rem", fontWeight:"bold", color:"#C9A84C" } }, "Go all in — $19.99"),
+          React.createElement("div", { style:{ fontSize:"0.72rem", color:"#999", marginTop:"0.15rem" } }, "Forever. Yours for good — no expiry, no second thoughts.")
+        ),
+
+        // Decline — keep playing free, no dead end
+        React.createElement("button", { onClick:onDecline,
+          style:{ width:"100%", textAlign:"center", padding:"0.7rem", borderRadius:"8px", border:"1px solid #333", background:"transparent", color:"#666", fontSize:"0.78rem", cursor:"pointer" }
+        }, "Not now — keep playing the free version"),
+
+        React.createElement("div", { style:{ marginTop:"1.25rem", fontSize:"0.68rem", color:"#444", textAlign:"center", lineHeight:1.7 } },
+          "One-time payment either way. No subscription. No auto-renewal."
         )
       )
     )
@@ -4011,6 +4063,19 @@ function App() {
   var boardS = useState(loadLeaderboard()); var board = boardS[0], setBoard = boardS[1];
   var proStatusS = useState(function(){ return loadProStatus(); }); var proStatus = proStatusS[0], setProStatus = proStatusS[1];
   var showProS = useState(false); var showPro = showProS[0], setShowPro = showProS[1];
+  // Act 2 gate — Paulson's in-story offer. Separate from showPro (the
+  // generic leaderboard-context purchase modal) because this one carries
+  // its own narrative framing and a 3rd "not now, keep playing free" option
+  // that ProUpgradeModal doesn't have.
+  var showPaulsonGateS = useState(false); var showPaulsonGate = showPaulsonGateS[0], setShowPaulsonGate = showPaulsonGateS[1];
+  var paulsonGatePresetTierS = useState("allin"); var paulsonGatePresetTier = paulsonGatePresetTierS[0], setPaulsonGatePresetTier = paulsonGatePresetTierS[1];
+  var proModalInitialTabS = useState("activate"); var proModalInitialTab = proModalInitialTabS[0], setProModalInitialTab = proModalInitialTabS[1];
+  // Several Act 2 entry points live inside useCallback([]) or useEffect
+  // closures that don't want proStatus in their dependency array (would
+  // re-fire on every purchase). This ref lets them read the LATEST value
+  // without going stale — same pattern as Mic Drop's spotifyStatusRef.
+  var proStatusRef = useRef(proStatus);
+  useEffect(function(){ proStatusRef.current = proStatus; }, [proStatus]);
   var showGlobalLBoardS = useState(false); var showGlobalLBoard = showGlobalLBoardS[0], setShowGlobalLBoard = showGlobalLBoardS[1];
   var showSplashS = useState(true); var showSplash = showSplashS[0], setShowSplash = showSplashS[1];
   var shownNotifsRef = useRef([]);
@@ -4271,13 +4336,23 @@ function App() {
           queueNotif({ sender:"Richard Paulson", preview:"Year one complete.", body:"Twelve months in. A term deposit on your win would have paid roughly $" + termDepositAlt.toLocaleString() + " this year. Your passive income generated $" + Math.round(actualPassive).toLocaleString() + ". Difference: " + (diff >= 0 ? "+" : "") + "$" + Math.round(diff).toLocaleString() + ". " + (diff >= 0 ? "You've outperformed the do-nothing strategy." : "Still building — stay the course."), type:"paulson" });
         }
 
-        // Paulson's personal favour — resolves 3 months after investing
+        // Paulson's personal favour — resolves 3 months after investing.
+        // The cash/passive reward is the honest payoff of a decision the
+        // player already made for free — that stays regardless. Only Act 2
+        // access (billionaireMode) itself is gated, via the same offer as
+        // every other entry point.
         if (gs.paulsonFavorPath === "invested" && !pm.favorResolved && (month - (gs.paulsonFavorInvestMonth||0)) >= 3) {
-          setGameState(function(g){return Object.assign({},g,{paulsonFavorPath:"resolved_win",billionaireMode:true,paulsonMilestones:Object.assign({},g.paulsonMilestones,{favorResolved:true}),legacyScore:(g.legacyScore||0)+15});});
+          var favorGrantsAct2 = !!proStatusRef.current;
+          setGameState(function(g){return Object.assign({},g,{paulsonFavorPath:"resolved_win",billionaireMode: favorGrantsAct2 ? true : g.billionaireMode,paulsonMilestones:Object.assign({},g.paulsonMilestones,{favorResolved:true}),legacyScore:(g.legacyScore||0)+15});});
           setCash(function(c){return c + 18000000;});
           setPassiveIncome(function(p){return p + 240000;});
           queueNotif({ sender:"Richard Paulson", type:"paulson", preview:"Priya's platform. It worked.",
             body:"Three of the big four banks signed on this week. The Series A closed at a number that made my own broker go quiet for a moment, which doesn't happen often. Your $5M is now worth considerably more than that, and there's a settlement fee structure that will pay out monthly for years. I don't say this lightly: thank you. Not for the money. For believing me when I had nothing but my word to offer you. — Richard" });
+          if(!favorGrantsAct2){
+            // Let the good news land first — the gate follows a beat later,
+            // not stapled to the same notification.
+            setTimeout(function(){ setShowPaulsonGate(true); }, 3500);
+          }
         }
 
         // ── KP MILESTONES ──
@@ -4543,14 +4618,28 @@ function App() {
       setNotifResult({msg:"You didn't expect the call, or the tone. Richard sounds nothing like himself.",cost:0,passiveAdd:0});
       return;
     }
-    if(notif.gatesPath){setGameState(function(gs){return Object.assign({},gs,{billionaireMode:true});});setNodeKey("bill_root");setNotifResult({msg:notif.onAccept.msg,cost:0,passiveAdd:0});return;}
+    if(notif.gatesPath){
+      if(proStatusRef.current){
+        setGameState(function(gs){return Object.assign({},gs,{billionaireMode:true});});
+        setNodeKey("bill_root");
+      } else {
+        // Richard's pitch still plays out narratively — the gate is what
+        // comes right after, not a wall before he even gets to speak.
+        setShowPaulsonGate(true);
+      }
+      setNotifResult({msg:notif.onAccept.msg,cost:0,passiveAdd:0});
+      return;
+    }
     if(notif.paulsonStructureTrigger){setGameState(function(gs){return Object.assign({},gs,{paulsonContact:Math.max(2,gs.paulsonContact||0)});});setNodeKey("paulson_structure");setNotifResult({msg:notif.onAccept.msg,cost:0,passiveAdd:0});return;}
     if(notif.paulsonContact){
       var pc=notif.paulsonContact,pCost=notif.onAccept.cost||0,pPA=notif.onAccept.passiveAdd||0;
       if(pCost>0)setCash(function(c){return Math.max(0,c-pCost);});
       if(pPA>0)setPassiveIncome(function(p){return p+pPA;});
-      setGameState(function(gs){return Object.assign({},gs,{paulsonContact:Math.max(gs.paulsonContact||0,pc),billionaireMode:pc>=4?true:gs.billionaireMode});});
-      if(pc>=4)setNodeKey("paulson_opportunity");
+      setGameState(function(gs){return Object.assign({},gs,{paulsonContact:Math.max(gs.paulsonContact||0,pc),billionaireMode:(pc>=4 && proStatusRef.current)?true:gs.billionaireMode});});
+      if(pc>=4){
+        if(proStatusRef.current) setNodeKey("paulson_opportunity");
+        else setShowPaulsonGate(true);
+      }
       setNotifResult({msg:notif.onAccept.msg,cost:pCost,passiveAdd:pPA});
       return;
     }
@@ -4589,10 +4678,28 @@ function App() {
     if(acq.annualCost>0)setAnnualCosts(function(a){return a+acq.annualCost;});
     setGameState(function(gs){return Object.assign({},gs,{legacyScore:(gs.legacyScore||0)+(acq.legacyDelta||0),tycoonAssets:(gs.tycoonAssets||[]).concat([{id:acq.id,icon:acq.icon,name:acq.name,passiveIncome:acq.passiveIncome,assetValue:acq.assetValue}])});});
   },[]);
+  // Shared by every Act 2 gate render site — a paid choice closes the gate
+  // and opens the real purchase flow pre-selected on that tier; declining
+  // just closes the gate with zero state change, straight back to the free
+  // game exactly where they left off.
+  var handlePaulsonChoice = useCallback(function(tierId){
+    setPaulsonGatePresetTier(tierId);
+    setProModalInitialTab("buy");
+    setShowPaulsonGate(false);
+    setShowPro(true);
+  }, []);
+  var handlePaulsonDecline = useCallback(function(){
+    setShowPaulsonGate(false);
+  }, []);
+
   var handleEnterTycoon = useCallback(function(){
-    setGameState(function(gs){return Object.assign({},gs,{tycoonMode:true});});
-    setShowTycoon(true);
-    setTierScreen("tycoon_chase");
+    if(proStatusRef.current){
+      setGameState(function(gs){return Object.assign({},gs,{tycoonMode:true});});
+      setShowTycoon(true);
+      setTierScreen("tycoon_chase");
+    } else {
+      setShowPaulsonGate(true);
+    }
   },[]);
   var handleSailOff = useCallback(function(tier){setSailTier(tier||"suburban");setTierScreen("sailoff");setTimeout(function(){buildScorecard(tier||"sailoff");setScreen("ended");},500);},[passiveIncome,winAmount]);
 
@@ -4608,9 +4715,9 @@ function App() {
   if (screen === "reveal") {
     return React.createElement(React.Fragment, null,
       React.createElement("style", null, CSS),
-      React.createElement(RevealScreen, { onStart:handleStart, onLeaderboard:function(){setShowLeaderboard(true);}, onPro:function(){setShowPro(true);}, onProStatus:proStatus }),
+      React.createElement(RevealScreen, { onStart:handleStart, onLeaderboard:function(){setShowLeaderboard(true);}, onPro:function(){setProModalInitialTab("activate");setShowPro(true);}, onProStatus:proStatus }),
       showLeaderboard && React.createElement(LeaderboardScreen, { board:board, onClose:function(){setShowLeaderboard(false);} }),
-      showPro && React.createElement(ProUpgradeModal, { onClose:function(){setShowPro(false);}, onActivated:function(ps){ setProStatus(ps); setShowPro(false); } }),
+      showPro && React.createElement(ProUpgradeModal, { initialTab:proModalInitialTab, presetTier:paulsonGatePresetTier, onClose:function(){setShowPro(false);setProModalInitialTab("activate");}, onActivated:function(ps){ setProStatus(ps); setShowPro(false); setProModalInitialTab("activate"); } }),
       showGlobalLBoard && React.createElement(GlobalLeaderboardModal, { proStatus:proStatus, onClose:function(){setShowGlobalLBoard(false);} })
     );
   }
@@ -4639,19 +4746,31 @@ function App() {
   if (screen === "ended") {
     return React.createElement(React.Fragment, null,
       React.createElement("style", null, CSS),
-      showScorecard && scorecardEntry && React.createElement(ScorecardModal, { entry:scorecardEntry, board:board, rank:scorecardRank, proStatus:proStatus, history:scorecardEntry.history||[], onProUpgrade:function(){setShowScorecard(false);setShowPro(true);}, onClose:function(){setShowScorecard(false);setScreen("reveal");} }),
-      showPro && React.createElement(ProUpgradeModal, { onClose:function(){setShowPro(false);}, onActivated:function(ps){ setProStatus(ps); setShowPro(false); } }),
+      showScorecard && scorecardEntry && React.createElement(ScorecardModal, { entry:scorecardEntry, board:board, rank:scorecardRank, proStatus:proStatus, history:scorecardEntry.history||[], onProUpgrade:function(){setShowScorecard(false);setProModalInitialTab("activate");setShowPro(true);}, onClose:function(){setShowScorecard(false);setScreen("reveal");} }),
+      showPro && React.createElement(ProUpgradeModal, { initialTab:proModalInitialTab, presetTier:paulsonGatePresetTier, onClose:function(){setShowPro(false);setProModalInitialTab("activate");}, onActivated:function(ps){ setProStatus(ps); setShowPro(false); setProModalInitialTab("activate"); } }),
       showLeaderboard && React.createElement(LeaderboardScreen, { board:board, onClose:function(){setShowLeaderboard(false);} })
     );
   }
 
   // ── TIER SCREENS ──
-  if(tierScreen==="suburban"){return React.createElement(React.Fragment,null,React.createElement("style",null,CSS),React.createElement(SuburbanLegendScreen,{passiveIncome:passiveIncome,weeksElapsed:weeksElapsed,winAmount:winAmount,gameState:gameState,onSailOff:function(){handleSailOff("suburban");},onKeepGoing:handleEnterTycoon,onRestart:function(){buildScorecard("suburban");setScreen("ended");}}));}
-  if(tierScreen==="mogul"){return React.createElement(React.Fragment,null,React.createElement("style",null,CSS),React.createElement(CityMogulScreen,{passiveIncome:passiveIncome,weeksElapsed:weeksElapsed,totalAssets:totalAssets,gameState:gameState,onSailOff:function(){handleSailOff("mogul");},onKeepGoing:function(){
-    setGameState(function(gs){return Object.assign({},gs,{tycoonMode:true,mogulAcknowledged:true});});
-    setShowTycoon(true);
-    setTierScreen("tycoon_chase");
-  },onRestart:function(){buildScorecard("mogul");setScreen("ended");}}));}
+  if(tierScreen==="suburban"){return React.createElement(React.Fragment,null,React.createElement("style",null,CSS),
+    React.createElement(SuburbanLegendScreen,{passiveIncome:passiveIncome,weeksElapsed:weeksElapsed,winAmount:winAmount,gameState:gameState,onSailOff:function(){handleSailOff("suburban");},onKeepGoing:handleEnterTycoon,onRestart:function(){buildScorecard("suburban");setScreen("ended");}}),
+    showPaulsonGate&&React.createElement(PaulsonGateModal,{onChoose:handlePaulsonChoice,onDecline:handlePaulsonDecline}),
+    showPro&&React.createElement(ProUpgradeModal,{initialTab:proModalInitialTab,presetTier:paulsonGatePresetTier,onClose:function(){setShowPro(false);setProModalInitialTab("activate");},onActivated:function(ps){setProStatus(ps);setShowPro(false);setProModalInitialTab("activate");}})
+  );}
+  if(tierScreen==="mogul"){return React.createElement(React.Fragment,null,React.createElement("style",null,CSS),
+    React.createElement(CityMogulScreen,{passiveIncome:passiveIncome,weeksElapsed:weeksElapsed,totalAssets:totalAssets,gameState:gameState,onSailOff:function(){handleSailOff("mogul");},onKeepGoing:function(){
+      if(proStatusRef.current){
+        setGameState(function(gs){return Object.assign({},gs,{tycoonMode:true,mogulAcknowledged:true});});
+        setShowTycoon(true);
+        setTierScreen("tycoon_chase");
+      } else {
+        setShowPaulsonGate(true);
+      }
+    },onRestart:function(){buildScorecard("mogul");setScreen("ended");}}),
+    showPaulsonGate&&React.createElement(PaulsonGateModal,{onChoose:handlePaulsonChoice,onDecline:handlePaulsonDecline}),
+    showPro&&React.createElement(ProUpgradeModal,{initialTab:proModalInitialTab,presetTier:paulsonGatePresetTier,onClose:function(){setShowPro(false);setProModalInitialTab("activate");},onActivated:function(ps){setProStatus(ps);setShowPro(false);setProModalInitialTab("activate");}})
+  );}
   if(tierScreen==="tycoon"){return React.createElement(React.Fragment,null,React.createElement("style",null,CSS),React.createElement(TycoonScreen,{passiveIncome:passiveIncome,weeksElapsed:weeksElapsed,totalAssets:totalAssets,gameState:gameState,onRestart:function(){buildScorecard("tycoon");setScreen("ended");}}));}
   if(tierScreen==="sailoff"){return React.createElement(React.Fragment,null,React.createElement("style",null,CSS),React.createElement(SailOffScreen,{tier:sailTier,passiveIncome:passiveIncome,gameState:gameState,onRestart:function(){setScreen("reveal");setTierScreen("none");}}));}
 
@@ -4668,7 +4787,7 @@ function App() {
 
   return React.createElement("div",{style:{minHeight:"100vh",background:C.black,color:C.white,fontFamily:"Georgia,serif"}},
     React.createElement("style",null,CSS + "@keyframes passiveGlow{0%{opacity:0}15%{opacity:1}70%{opacity:1}100%{opacity:0}} @keyframes passiveSlide{0%{opacity:0;transform:translateY(8px)}15%{opacity:1;transform:translateY(0)}70%{opacity:1;transform:translateY(0)}100%{opacity:0;transform:translateY(-12px)}} @keyframes edgeGlow{0%{opacity:0}20%{opacity:1}65%{opacity:1}100%{opacity:0}} @keyframes coinSpin{0%{transform:rotateY(0deg)}50%{transform:rotateY(90deg)}100%{transform:rotateY(180deg)}}"),
-    React.createElement(HUD,{cash:cash,passiveIncome:passiveIncome,weeksElapsed:weeksElapsed,daysElapsed:daysElapsed,winAmount:winAmount,debt:debt,vidoDebt:vidoDebt,gameState:gameState,onHome:handleHome,onInbox:function(){setShowInbox(true);},inboxCount:notifQueue.length+inbox.length,onPro:function(){setShowPro(true);},proStatus:proStatus}),
+    React.createElement(HUD,{cash:cash,passiveIncome:passiveIncome,weeksElapsed:weeksElapsed,daysElapsed:daysElapsed,winAmount:winAmount,debt:debt,vidoDebt:vidoDebt,gameState:gameState,onHome:handleHome,onInbox:function(){setShowInbox(true);},inboxCount:notifQueue.length+inbox.length,onPro:function(){setProModalInitialTab("activate");setShowPro(true);},proStatus:proStatus}),
     React.createElement("div",{style:{minHeight:"calc(100vh - 80px)",paddingBottom:"3rem"}},content),
     showBillFinale&&React.createElement(BillionaireScreen,{gameState:gameState,netWorth:gameState.billNetWorth||0,onRestart:function(){buildScorecard("billionaire");setScreen("ended");}}),
     pendingNotif&&React.createElement(NotificationPopup,{notif:pendingNotif,onAccept:handleNotifAccept,onReject:handleNotifReject}),
@@ -4681,7 +4800,7 @@ function App() {
     passiveGlow&&React.createElement(PassiveGlowOverlay,{amount:passiveGlow.amount,message:passiveGlow.message}),
     showInbox&&React.createElement(NotificationInbox,{
       inbox:inbox, queue:notifQueue,
-      onProUpgrade:function(){setShowInbox(false);setShowPro(true);},
+      onProUpgrade:function(){setShowInbox(false);setProModalInitialTab("activate");setShowPro(true);},
       onClose:function(){
         setShowInbox(false);
         if(notifQueue.length===0) handleHome();
@@ -4691,7 +4810,8 @@ function App() {
       onSurvive:function(){setVidoDebt(vidoCoinDebt);vidoDebtRef.current=vidoCoinDebt;setVidoWeeks(0);setShowVidoCoin(false);setPendingEvent({text:"🔪 Six months. Vido pockets the coin. "+fmtFull(vidoCoinDebt)+" outstanding. The clock is already running.",type:"bad",cost:0});},
       onDeath:function(){setShowVidoCoin(false);setScreen("tombstone");}
     }),
-    showPro&&React.createElement(ProUpgradeModal,{onClose:function(){setShowPro(false);},onActivated:function(ps){setProStatus(ps);setShowPro(false);}})
+    showPaulsonGate&&React.createElement(PaulsonGateModal,{onChoose:handlePaulsonChoice,onDecline:handlePaulsonDecline}),
+    showPro&&React.createElement(ProUpgradeModal,{initialTab:proModalInitialTab,presetTier:paulsonGatePresetTier,onClose:function(){setShowPro(false);setProModalInitialTab("activate");},onActivated:function(ps){setProStatus(ps);setShowPro(false);setProModalInitialTab("activate");}})
   );
 }
 
