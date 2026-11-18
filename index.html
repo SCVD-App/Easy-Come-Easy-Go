@@ -129,6 +129,13 @@ function saveProStatus(status) {
   try { localStorage.setItem(PRO_STATUS_KEY, JSON.stringify(status)); } catch(e) {}
 }
 
+function clearProStatus() {
+  try {
+    localStorage.removeItem(PRO_STATUS_KEY);
+    localStorage.removeItem(PRO_TOKEN_KEY);
+  } catch(e) {}
+}
+
 async function validateToken(token) {
   try {
     var res = await fetch(WORKER_URL + "/validate", {
@@ -4076,6 +4083,29 @@ function App() {
   // without going stale — same pattern as Mic Drop's spotifyStatusRef.
   var proStatusRef = useRef(proStatus);
   useEffect(function(){ proStatusRef.current = proStatus; }, [proStatus]);
+
+  // ── RECHECK SAVED PRO ACCESS ON EVERY LOAD ──
+  // Saved Pro access only counts if the Worker still accepts its token. A
+  // network failure keeps access, so paying players can still play offline.
+  useEffect(function() {
+    var saved = loadProStatus();
+    if (!saved) return;
+    function removeAccess() {
+      clearProStatus();
+      proStatusRef.current = null;
+      setProStatus(null);
+    }
+    if (typeof saved.token !== "string" || !saved.token.trim()) { removeAccess(); return; }
+    validateToken(saved.token).then(function(result) {
+      if (result.valid) {
+        var fresh = Object.assign({}, saved, { tier: result.tier, days: result.days, daysRemaining: result.daysRemaining });
+        saveProStatus(fresh);
+        setProStatus(fresh);
+      } else if (result.reason === "invalid_token" || result.reason === "token_not_found" || result.reason === "expired") {
+        removeAccess();
+      }
+    });
+  }, []);
   var showGlobalLBoardS = useState(false); var showGlobalLBoard = showGlobalLBoardS[0], setShowGlobalLBoard = showGlobalLBoardS[1];
   var showSplashS = useState(true); var showSplash = showSplashS[0], setShowSplash = showSplashS[1];
   var shownNotifsRef = useRef([]);
